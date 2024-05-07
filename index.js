@@ -12,15 +12,10 @@ app.use(async (ctx, next) => {
 })
 
 /** 引入api接口 */
-const get = require('./api/get')
-const post = require('./api/post')
+const ql = require('./api/ql')
 
-/** get请求 */
-app.use(get.routes(), get.allowedMethods())
-
-/** post请求需要加上 bodyParser */
-app.use(bodyParser()).use(get.routes(), get.allowedMethods())
-app.use(bodyParser()).use(post.routes(), post.allowedMethods())
+/** 请求需要加上 bodyParser */
+app.use(bodyParser()).use(ql.routes(), ql.allowedMethods())
 
 /**
  * 请求日志
@@ -33,5 +28,5 @@ const host = 'http://127.0.0.1', port = 8970
 
 /** 启动服务、监听端口 */
 app.listen(port, () => {
-  console.log(`app started at port ${ host }:${ port }`)
+  console.log(`app started at port ${host}:${port}`)
 })
