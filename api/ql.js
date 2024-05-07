@@ -11,7 +11,7 @@ router.prefix('/ql/v1')
  * 解析 文本中京东ck（值来自于手机alook浏览器提取）
  * @param {string} [ck=''] ck 京东cookie
  */
-router.post('/parsejdck', async (ctx, next) => {
+router.post('/parse_jdck', async (ctx, next) => {
   await next()
   const { ck } = ctx.request.body;
   // 检查参数是否存在且为字符串类型
@@ -75,6 +75,24 @@ function parsejdck(body = {}) {
   }
 }
 
+/**
+ * 用pt_key和pt_pin更新京东ck
+ * @param {string} [ck={pt_key: '', pt_pin: ''}] ck 京东cookie中的 pt_key 和 pt_pin
+ * @param {string} [client_id=''] qinglong 面板应用id
+ * @param {string} [client_secret=''] qinglong 面板应用密钥
+ * @param {string} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
+ */
+router.post('/update_jdck', async (ctx, next) => {
+  await next()
+  const { ql_addr, ck = {}, client_id = '', client_secret = '' } = ctx.request.body;
+  if ((ql_addr != null) && (ql_addr != '')) {
+    QL_ADDR = ql_addr
+  }
+
+  const { pt_key, pt_pin } = ck
+  const { code, message } = await doUpdateJDCK({ client_id, client_secret, pt_key, pt_pin })
+  ctx.body = { code, message }
+})
 
 /**
  * 使用 cookie 来更新京东ck
@@ -92,44 +110,16 @@ router.post('/update/jdck', async (ctx, next) => {
   if (typeof ck === 'string') {
     const jdck = parsejdck(ctx.request.body)
     const { pt_key, pt_pin } = jdck
-    if (pt_pin != null && pt_key != null) {
-      const { client_id, client_secret, ql_addr } = ctx.request.body
-      if ((ql_addr != null) && (ql_addr != '')) {
-        QL_ADDR = ql_addr
-      }
-
-      // 获取 ql token
-      const { code, token, message } = await getQLToken({ client_id, client_secret })
-      if (code == 200) {
-        // 获取 ql 环境变量
-        const { code, data, message } = await getQLEvns({ token })
-        if (code == 200) {
-          // 更新 ql 环境变量
-          const { code, message } = await handleQLEnvs(token, data, { pt_key, pt_pin })
-          ctx.body = {
-            code: code,
-            message: message
-          }
-        }
-        else {
-          ctx.body = {
-            code: code,
-            message: message
-          }
-        }
-      }
-      else {
-        ctx.body = {
-          code: code,
-          message: message
-        }
-      }
+    const { client_id, client_secret, ql_addr } = ctx.request.body
+    
+    if ((ql_addr != null) && (ql_addr != '')) {
+      QL_ADDR = ql_addr
     }
-    else {
-      ctx.body = {
-        code: 400,
-        message: 'Parameter ck is invalid, need to contain pt_key and pt_pin',
-      }
+
+    const { code, message } = await doUpdateJDCK({ client_id, client_secret, pt_key, pt_pin })
+    ctx.body = {
+      code,
+      message
     }
   } else {
     let message = 'body parameter ck is required and must be a string'
@@ -140,6 +130,36 @@ router.post('/update/jdck', async (ctx, next) => {
     console.log(message);
   }
 })
+
+/**
+ * 更新青龙环境变量
+ * @param {{}} [params={}] params
+ * @return 处理后的青龙环境变量
+ */
+async function doUpdateJDCK(params) {
+  const { pt_key, pt_pin, client_id, client_secret } = params
+  if (!(pt_key && pt_pin)) {
+    return { code: 400, message: 'Parameter ck is invalid, need to contain pt_key and pt_pin' }
+  }
+
+  // 获取 ql token
+  const { code, token, message } = await getQLToken({ client_id, client_secret })
+  if (code == 200) {
+    // 获取 ql 环境变量
+    const { code, data, message } = await getQLEvns({ token })
+    if (code == 200) {
+      // 更新 ql 环境变量
+      const { code, message } = await handleQLEnvs(token, data, { pt_key, pt_pin })
+      return { code, message }
+    }
+    else {
+      return { code, message }
+    }
+  }
+  else {
+    return { code, message }
+  }
+}
 
 /**
  * 获取青龙token
