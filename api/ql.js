@@ -1,8 +1,21 @@
 
 const router = require('koa-router')()
 const ql = require('./util/qlutil')
+const fs = require('fs');
 
-let QL_ADDR = 'http://127.0.0.1:5700'
+// 读取配置文件
+const config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+
+// 在服务中使用配置参数
+console.log('Client ID:', config.client_id);
+console.log('Client Secret:', config.client_secret);
+console.log('QL_Address:', config.ql_addr);
+
+let QL_CONFIG = {
+  "QL_ADDR": config.ql_addr,
+  "CLIENT_ID": config.client_id,
+  "CLIENT_SECRET": config.client_secret
+}
 
 /** 路由模块配置  (前缀) */
 router.prefix('/ql/v1')
@@ -78,19 +91,25 @@ function parsejdck(body = {}) {
 /**
  * 用pt_key和pt_pin更新京东ck
  * @param {string} [ck={pt_key: '', pt_pin: ''}] ck 京东cookie中的 pt_key 和 pt_pin
- * @param {string} [client_id=''] qinglong 面板应用id
- * @param {string} [client_secret=''] qinglong 面板应用密钥
- * @param {string} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
+ * @param {string?} [client_id=''] qinglong 面板应用id
+ * @param {string?} [client_secret=''] qinglong 面板应用密钥
+ * @param {string?} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
  */
 router.post('/update_jdck', async (ctx, next) => {
   await next()
-  const { ql_addr, ck = {}, client_id = '', client_secret = '' } = ctx.request.body;
-  if ((ql_addr != null) && (ql_addr != '')) {
-    QL_ADDR = ql_addr
+  const { ck = {}, ql_addr = '', client_id = '', client_secret = '' } = ctx.request.body;
+  if (ql_addr) {
+    QL_CONFIG.QL_ADDR = ql_addr
+  }
+  if (client_id) {
+    QL_CONFIG.CLIENT_ID = client_id
+  }
+  if (client_secret) {
+    QL_CONFIG.CLIENT_SECRET = client_secret
   }
 
   const { pt_key, pt_pin } = ck
-  const { code, message } = await doUpdateJDCK({ client_id, client_secret, pt_key, pt_pin })
+  const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })
   ctx.body = { code, message }
 })
 
@@ -99,9 +118,9 @@ router.post('/update_jdck', async (ctx, next) => {
  * 1：先解析京东ck
  * 2：再更新ql的环境变量
  * @param {string} [ck=''] ck 京东cookie
- * @param {string} [client_id=''] qinglong 面板应用id
- * @param {string} [client_secret=''] qinglong 面板应用密钥
- * @param {string} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
+ * @param {string?} [client_id=''] qinglong 面板应用id
+ * @param {string?} [client_secret=''] qinglong 面板应用密钥
+ * @param {string?} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
  */
 router.post('/update/jdck', async (ctx, next) => {
   await next()
@@ -110,13 +129,19 @@ router.post('/update/jdck', async (ctx, next) => {
   if (typeof ck === 'string') {
     const jdck = parsejdck(ctx.request.body)
     const { pt_key, pt_pin } = jdck
-    const { client_id, client_secret, ql_addr } = ctx.request.body
+    const { client_id = '', client_secret = '', ql_addr = '' } = ctx.request.body
     
-    if ((ql_addr != null) && (ql_addr != '')) {
-      QL_ADDR = ql_addr
+    if (ql_addr) {
+      QL_CONFIG.QL_ADDR = ql_addr
+    }
+    if (client_id) {
+      QL_CONFIG.CLIENT_ID = client_id
+    }
+    if (client_secret) {
+      QL_CONFIG.CLIENT_SECRET = client_secret
     }
 
-    const { code, message } = await doUpdateJDCK({ client_id, client_secret, pt_key, pt_pin })
+    const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })
     ctx.body = {
       code,
       message
@@ -137,13 +162,13 @@ router.post('/update/jdck', async (ctx, next) => {
  * @return 处理后的青龙环境变量
  */
 async function doUpdateJDCK(params) {
-  const { pt_key, pt_pin, client_id, client_secret } = params
+  const { pt_key, pt_pin } = params
   if (!(pt_key && pt_pin)) {
     return { code: 400, message: 'Parameter ck is invalid, need to contain pt_key and pt_pin' }
   }
 
   // 获取 ql token
-  const { code, token, message } = await getQLToken({ client_id, client_secret })
+  const { code, token, message } = await getQLToken()
   if (code == 200) {
     // 获取 ql 环境变量
     const { code, data, message } = await getQLEvns({ token })
@@ -163,13 +188,13 @@ async function doUpdateJDCK(params) {
 
 /**
  * 获取青龙token
- * @param {string} [client_id=''] qinglong 面板应用id
- * @param {string} [client_secret=''] qinglong 面板应用密钥
  * @return 青龙token
  */
-async function getQLToken(params = {}) {
-  const { client_id = '', client_secret = '' } = params
-  console.log('getQLToken params = ' + JSON.stringify(params))
+async function getQLToken() {
+  const client_id = QL_CONFIG.CLIENT_ID
+  const client_secret = QL_CONFIG.CLIENT_SECRET
+  const QL_ADDR = QL_CONFIG.QL_ADDR
+
   try {
     const { code, data, message } = await ql.login(client_id, client_secret, QL_ADDR)
     console.log('getQLToken ' + 'code = ' + code + ', token = ' + data + ', message = ' + message)
@@ -189,7 +214,7 @@ async function getQLToken(params = {}) {
 async function getQLEvns(params) {
   const { token } = params
   try {
-    const { code, data, message } = await ql.getEnvs(token, QL_ADDR)
+    const { code, data, message } = await ql.getEnvs(token, QL_CONFIG.QL_ADDR)
     console.log('getQLEvns ' + 'code = ' + code + ', message = ' + message)
     return { code, data, message }
   } catch (error) {
@@ -229,13 +254,13 @@ async function handleQLEnvs(token, envs = [], jdck = {}) {
     // 找到，更新
     jdCKObj.value = value
     try {
-      const { code, message } = await ql.updateEnvs(token, QL_ADDR, jdCKObj)
+      const { code, message } = await ql.updateEnvs(token, QL_CONFIG.QL_ADDR, jdCKObj)
       console.log('handleQLEnvs updateEnvs ' + 'code = ' + code + ', message = ' + message)
 
       if (String(jdCKObj.status) === '1') {
         // 若status状态为1，表示被禁用，需启用此变量
         console.log('handleQLEnvs pt_pin = ' + pt_pin + ' 未启用')
-        const { code, message } = await ql.enableEnvs(token, QL_ADDR, [jdCKObj.id])
+        const { code, message } = await ql.enableEnvs(token, QL_CONFIG.QL_ADDR, [jdCKObj.id])
         console.log('handleQLEnvs enableEnvs ' + 'code = ' + code + ', message = ' + message)
         return { code, message }
       }
@@ -252,7 +277,7 @@ async function handleQLEnvs(token, envs = [], jdck = {}) {
       value: value,
     }
     try {
-      const { code, message, data } = await ql.insertEnvs(token, QL_ADDR, jdCKObj)
+      const { code, message, data } = await ql.insertEnvs(token, QL_CONFIG.QL_ADDR, jdCKObj)
       console.log('handleQLEnvs insertEnvs ' + 'code = ' + code + ', message = ' + message)
       return { code, data, message }
     } catch (error) {

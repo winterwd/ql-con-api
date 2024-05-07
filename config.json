@@ -1,0 +1,8 @@
+{
+  "#client_id": "在青龙面板中创建的client_id",
+  "client_id": "xx",
+  "#client_secret": "在青龙面板中创建的client_secret",
+  "client_secret":"xx",
+  "#ql_addr": "默认使用本机地址，如果不一样请修改",
+  "ql_addr": "http://127.0.0.1:5700"
+}

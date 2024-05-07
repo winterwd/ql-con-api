@@ -49,6 +49,7 @@ function login(client_id = '', client_secret = '', ql_addr = 'http://127.0.0.1:5
   // 登录url
   let ql_addrUrl = ql_addr;
   let loginUrl = ql_addrUrl + "/open/auth/token";
+  console.log('loginUrl = ' + loginUrl)
 
   return new Promise((resolve, reject) => {
     request.get({
@@ -101,6 +102,7 @@ function getEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', key = '') {
   // 获取青龙环境变量url
   let ql_addrUrl = ql_addr;
   let qlEnvsUrl = ql_addrUrl + "/open/envs?searchValue=" + key;
+  console.log('获取青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
     request.get(requestOptions(qlEnvsUrl, token),
@@ -139,6 +141,7 @@ function insertEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envInfo = {})
   // 添加青龙环境变量url
   let ql_addrUrl = ql_addr;
   let qlEnvsUrl = ql_addrUrl + "/open/envs";
+  console.log('添加青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
     request.post(requestOptions(qlEnvsUrl, token, body = [envInfo]),
@@ -175,6 +178,7 @@ function updateEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envInfo = {})
   // 更新青龙环境变量url
   let ql_addrUrl = ql_addr;
   let qlEnvsUrl = ql_addrUrl + "/open/envs";
+  console.log('更新青龙环境变量 url = ' + qlEnvsUrl)
 
   const data = {
     "name": envInfo.name,
@@ -218,6 +222,7 @@ function deleteEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) 
   // 删除青龙环境变量url
   let ql_addrUrl = ql_addr;
   let qlEnvsUrl = ql_addrUrl + "/open/envs";
+  console.log('删除青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
     request.delete(requestOptions(qlEnvsUrl, token, body = envIDs),
@@ -255,6 +260,7 @@ function enableEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) 
   // 启用青龙环境变量url
   let ql_addrUrl = ql_addr;
   let qlEnvsUrl = ql_addrUrl + "/open/envs/enable";
+  console.log('启用青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
     request.put(requestOptions(qlEnvsUrl, token, body = envIDs),
@@ -292,6 +298,7 @@ function disableEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = [])
   // 禁用青龙环境变量url
   let ql_addrUrl = ql_addr;
   let qlEnvsUrl = ql_addrUrl + "/open/envs/disable";
+  console.log('禁用青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
     request.put(requestOptions(qlEnvsUrl, token, body = envIDs),
@@ -333,6 +340,7 @@ function getScriptFile(token = '', ql_addr = 'http://127.0.0.1:5700', fileName =
   // 获取脚本文件url
   let ql_addrUrl = ql_addr;
   let qlScriptFileUrl = ql_addrUrl + "open/scripts/download";
+  console.log('获取脚本文件 url = ' + qlScriptFileUrl)
 
   return new Promise((resolve, reject) => {
     request.post(requestOptions(qlScriptFileUrl, token, body = { "filename": fileName }),
@@ -376,6 +384,7 @@ function updateScriptFile(token = '', ql_addr = 'http://127.0.0.1:5700', fileNam
   // 更新脚本文件url
   let ql_addrUrl = ql_addr;
   let qlScriptFileUrl = ql_addrUrl + "open/scripts";
+  console.log('更新脚本文件 url = ' + qlScriptFileUrl)
 
   let data = {
     "filename": fileName,
