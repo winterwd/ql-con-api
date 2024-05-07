@@ -1,6 +1,6 @@
-# 使用官方 Node.js 基础镜像，选择一个适合 ARM 架构的版本，例如 node:14-alpine
-# Alpine Linux 版本较小，适合轻量级容器环境
-FROM arm32v7/node:14-alpine
+# 使用官方 Node.js 基础镜像，选择一个适合 ARM 架构的版本
+# 青龙版本: v2.11.3
+FROM arm64v8/node:17
 
 # 创建 app 目录来持有应用
 WORKDIR /usr/src/app
