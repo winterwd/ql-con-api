@@ -67,19 +67,20 @@ function parsejdck(body = {}) {
     // 将 ck 拆分为字符串数组，找出 pt_key 和 pt_pin
     let temp = ck.split(';')
     temp.forEach(s => {
-      if (s.startsWith('pt_key=')) {
-        pt_key = s.split('=')[1]
+      if (s.includes('pt_key=')) {
+        pt_key = s.split('pt_key=')[1]
       }
-      else if (s.startsWith('pt_pin=')) {
-        pt_pin = s.split('=')[1]
+      else if (s.includes('pt_pin=')) {
+        pt_pin = s.split('pt_pin=')[1]
       }
     });
 
     // 是否存在 pt_key 和 pt_pin
-    if (pt_key != '' && pt_pin != '') {
-      console.log(`解析京东ck完成，pt_key: ${pt_key}, pt_pin: ${pt_pin}}`);
+    if (pt_key && pt_pin) {
+      console.log(`解析京东ck完成，pt_key=${pt_key}, pt_pin=${pt_pin}`);
       return { pt_key, pt_pin }
     } else {
+      console.log(`解析京东ck 失败`);
       return {}
     }
   } else {
