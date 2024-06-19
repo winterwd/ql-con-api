@@ -4,5 +4,7 @@
   "#client_secret": "在青龙面板中创建的client_secret",
   "client_secret":"xx",
   "#ql_addr": "默认使用本机地址，如果不一样请修改",
-  "ql_addr": "http://127.0.0.1:5700"
+  "ql_addr": "http://127.0.0.1:5700",
+  "#wxpusher": "固定格式，只需修改 xx.api.com",
+  "wxpusher": "http://xx.api.com/api/wxpusher"
 }

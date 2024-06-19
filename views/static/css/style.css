@@ -1,0 +1,25 @@
+body {
+  background: #efefef;
+  padding: 20px;
+}
+.formbox {
+  width: 300px;
+  margin: auto;
+}
+.formbox .btn {
+  width: 100%;
+}
+.formbox .codebtn {
+  width: 120px;
+  margin-left: 10px;
+  font-size: 15px;
+}
+.formbox .submitbtn {
+  margin-top: 30px;
+  font-size: 15px;
+  height: 45px;
+}
+.titleBar{
+  text-align: center;
+  padding-bottom: 20px;
+}
