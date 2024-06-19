@@ -1,4 +1,9 @@
 const request = require('request');
+const qlConfig = require('./ql_config');
+
+let client_id = qlConfig.CLIENT_ID
+let client_secret = qlConfig.CLIENT_SECRET
+let ql_addr = qlConfig.QL_ADDR
 
 /**
  * 判断字符串是否为空
@@ -22,28 +27,15 @@ function requestOptions(url, token, body) {
 
 /**
  * 登录青龙面板
- *
- * @param {string} [client_id=''] client_id 青龙面板应用id
- * @param {string} [client_secret=''] client_secret 青龙面板应用密钥
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @return 登录成功后的token
  */
-function login(client_id = '', client_secret = '', ql_addr = 'http://127.0.0.1:5700') {
+function login() {
   console.log('登录青龙面板接口')
 
   let code = 400
-  let token = '登录青龙面板'
 
-  if (isEmptyString(client_id)) {
-    return { code, message: token + ' 请检查client_id' }
-  }
-
-  if (isEmptyString(client_secret)) {
-    return { code, message: token + ' 请检查client_secret' }
-  }
-
-  if (isEmptyString(ql_addr)) {
-    return { code, message: token + ' 请检查ql_addr' }
+  if (!qlConfig.VALID) {
+    return { code, message: ' 请检查client_id 和 请检查client_secret' }
   }
 
   // 登录url
@@ -66,16 +58,8 @@ function login(client_id = '', client_secret = '', ql_addr = 'http://127.0.0.1:5
 
       let result = JSON.parse(body)
       console.log('loginUrl result = ' + body)
-      if (result.code == 200) {
-        token = result.data.token
-        code = 200
-      } else {
-        code = result.code
-        message = result.message
-      }
-
       if (code == 200) {
-        resolve({ code, data: token, message: '登录成功' })
+        resolve({ ...result, message: '登录成功' })
       }
       else {
         reject(result)
@@ -88,11 +72,10 @@ function login(client_id = '', client_secret = '', ql_addr = 'http://127.0.0.1:5
  * 获取青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [key=''] key 青龙环境变量
  * @return 青龙环境变量
  */
-function getEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', key = '') {
+function getEnvs(token = '', key = '') {
   console.log('获取青龙环境变量 key = ' + key)
 
   if (isEmptyString(token)) {
@@ -127,11 +110,10 @@ function getEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', key = '') {
  * 添加青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [envInfo={name,value,remarks}] envInfo 青龙环境变量
  * @return 青龙环境变量
  */
-function insertEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envInfo = {}) {
+function insertEnvs(token = '', envInfo = {}) {
   console.log('添加青龙环境变量 envInfo = ' + JSON.stringify(envInfo))
 
   if (isEmptyString(token)) {
@@ -166,11 +148,10 @@ function insertEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envInfo = {})
  * 更新青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [envInfo={name,value,remarks, id}] envInfo 青龙环境变量
  * @return 青龙环境变量
  */
-function updateEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envInfo = {}) {
+function updateEnvs(token = '', envInfo = {}) {
   console.log('更新青龙环境变量 envInfo = ' + JSON.stringify(envInfo))
   if (isEmptyString(token)) {
     return { code: 401, message: '更新青龙环境变量失败, token 为空' }
@@ -209,11 +190,10 @@ function updateEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envInfo = {})
  * 删除青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [envIDs=[]] envIDs 青龙环境变量id
  * @return 青龙环境变量
  */
-function deleteEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) {
+function deleteEnvs(token = '', envIDs = []) {
   console.log('删除青龙环境变量接口 evnIDs = ' + JSON.stringify(envIDs))
   if (isEmptyString(token)) {
     return { code: 401, message: '删除青龙环境变量失败, token 为空' }
@@ -247,11 +227,10 @@ function deleteEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) 
  * 启用青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [envIDs=[]] envIDs 青龙环境变量id
  * @return 青龙环境变量
  */
-function enableEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) {
+function enableEnvs(token = '', envIDs = []) {
   console.log('启用青龙环境变量接口 evnIDs = ' + JSON.stringify(envIDs))
   if (isEmptyString(token)) {
     return { code: 401, message: '启用青龙环境变量失败, token 为空' }
@@ -285,11 +264,10 @@ function enableEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) 
  * 禁用青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [envIDs=[]] envIDs 青龙环境变量id
  * @return 青龙环境变量
  */
-function disableEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = []) {
+function disableEnvs(token = '', envIDs = []) {
   console.log('禁用青龙环境变量接口')
   if (isEmptyString(token)) {
     return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
@@ -323,11 +301,10 @@ function disableEnvs(token = '', ql_addr = 'http://127.0.0.1:5700', envIDs = [])
  * 获取 脚本文件
  * get:/scripts/{file} 这个接口不知道怎么用，先不用了，改用 download
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [fileName=''] fileName 脚本文件
  * @return 脚本文件
  */
-function getScriptFile(token = '', ql_addr = 'http://127.0.0.1:5700', fileName = '') {
+function getScriptFile(token = '', fileName = '') {
   console.log('获取脚本文件接口')
   if (isEmptyString(token)) {
     return { code: 401, message: '获取脚本文件失败, token 为空' }
@@ -364,12 +341,11 @@ function getScriptFile(token = '', ql_addr = 'http://127.0.0.1:5700', fileName =
 /**
  * 更新脚本文件
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [fileName=''] fileName 脚本文件，可以是路径：xxx/filename
  * @param {string} [fileContent=''] fileContent 脚本文件内容
  * @return 脚本文件
  */
-function updateScriptFile(token = '', ql_addr = 'http://127.0.0.1:5700', fileName = '', fileContent = '') {
+function updateScriptFile(token = '', fileName = '', fileContent = '') {
   console.log('更新脚本文件接口')
   if (isEmptyString(token)) {
     return { code: 401, message: '更新脚本文件失败, token 为空' }
@@ -415,28 +391,26 @@ function updateScriptFile(token = '', ql_addr = 'http://127.0.0.1:5700', fileNam
  * 获取微信推送配置
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @return 微信推送配置
  */
-function getWxPusherUidConfig(token = '', ql_addr = 'http://127.0.0.1:5700') {
+function getWxPusherUidConfig(token = '') {
   console.log('获取微信推送配置接口')
   if (isEmptyString(token)) {
     return { code: 401, message: '获取微信推送配置失败, token 为空' }
   }
 
   // 获取微信推送配置url
-  return getScriptFile(token, ql_addr, 'CK_WxPusherUid.json')
+  return getScriptFile(token, 'CK_WxPusherUid.json')
 }
 
 /**
  * 更新微信推送配置
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [ql_addr='http://127.0.0.1:5700'] ql_addr 青龙面板地址
  * @param {string} [json={Uid,pt_pin}] json 微信推送配置
  * @return 更新微信推送配置
  */
-function updateWxPusherUidConfig(token = '', ql_addr = 'http://127.0.0.1:5700', json = {}) {
+function updateWxPusherUidConfig(token = '',json = {}) {
   console.log('更新微信推送配置接口')
   if (isEmptyString(token)) {
     return { code: 401, message: '更新微信推送配置失败, token 为空' }
@@ -476,16 +450,20 @@ function updateWxPusherUidConfig(token = '', ql_addr = 'http://127.0.0.1:5700', 
   }
 }
 
-module.exports = {
-  login,
-  getEnvs,
-  insertEnvs,
-  updateEnvs,
-  deleteEnvs,
-  enableEnvs,
-  disableEnvs,
-  getScriptFile,
-  updateScriptFile,
-  getWxPusherUidConfig,
-  updateWxPusherUidConfig
-};
+class QL {
+  constructor() {
+    this.login = login
+    this.getEnvs = getEnvs
+    this.insertEnvs = insertEnvs
+    this.updateEnvs = updateEnvs
+    this.deleteEnvs = deleteEnvs
+    this.enableEnvs = enableEnvs
+    this.disableEnvs = disableEnvs
+    this.getScriptFile = getScriptFile
+    this.updateScriptFile = updateScriptFile
+    this.getWxPusherUidConfig = getWxPusherUidConfig
+    this.updateWxPusherUidConfig = updateWxPusherUidConfig
+  }
+}
+
+module.exports = QL

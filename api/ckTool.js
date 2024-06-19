@@ -1,30 +1,12 @@
 
-const router = require('koa-router')()
-const ql = require('./util/qlutil')
-const fs = require('fs');
-
-// 读取配置文件
-const config = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
-
-// 在服务中使用配置参数
-console.log('Client ID:', config.client_id);
-console.log('Client Secret:', config.client_secret);
-console.log('QL_Address:', config.ql_addr);
-
-let QL_CONFIG = {
-  "QL_ADDR": config.ql_addr,
-  "CLIENT_ID": config.client_id,
-  "CLIENT_SECRET": config.client_secret
-}
-
-/** 路由模块配置  (前缀) */
-router.prefix('/ql/v1')
+const QL = require('./util/ql')
+const ql = new QL()
 
 /**
- * 解析 文本中京东ck（值来自于手机alook浏览器提取）
+ * 解析 文本中京东ck
  * @param {string} [ck=''] ck 京东cookie
  */
-router.post('/parse_jdck', async (ctx, next) => {
+async function parseJDCK(ctx, next) {
   await next()
   const { ck } = ctx.request.body;
   // 检查参数是否存在且为字符串类型
@@ -52,7 +34,18 @@ router.post('/parse_jdck', async (ctx, next) => {
     };
     console.log(message);
   }
-})
+}
+
+/**
+ * 用pt_key和pt_pin更新京东ck
+ * @param {string} [ck={pt_key: '', pt_pin: ''}] ck 京东cookie中的 pt_key 和 pt_pin
+ */
+async function updateJDCK(ctx, next) {
+  await next()
+  const { pt_key, pt_pin } = ctx.request.body.ck??{}
+  const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })
+  return ctx.body = { code, message }
+}
 
 /**
  * 解析 文本中京东ck
@@ -90,57 +83,18 @@ function parsejdck(body = {}) {
 }
 
 /**
- * 用pt_key和pt_pin更新京东ck
- * @param {string} [ck={pt_key: '', pt_pin: ''}] ck 京东cookie中的 pt_key 和 pt_pin
- * @param {string?} [client_id=''] qinglong 面板应用id
- * @param {string?} [client_secret=''] qinglong 面板应用密钥
- * @param {string?} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
- */
-router.post('/update_jdck', async (ctx, next) => {
-  await next()
-  const { ck = {}, ql_addr = '', client_id = '', client_secret = '' } = ctx.request.body;
-  if (ql_addr) {
-    QL_CONFIG.QL_ADDR = ql_addr
-  }
-  if (client_id) {
-    QL_CONFIG.CLIENT_ID = client_id
-  }
-  if (client_secret) {
-    QL_CONFIG.CLIENT_SECRET = client_secret
-  }
-
-  const { pt_key, pt_pin } = ck
-  const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })
-  ctx.body = { code, message }
-})
-
-/**
  * 使用 cookie 来更新京东ck
  * 1：先解析京东ck
  * 2：再更新ql的环境变量
  * @param {string} [ck=''] ck 京东cookie
- * @param {string?} [client_id=''] qinglong 面板应用id
- * @param {string?} [client_secret=''] qinglong 面板应用密钥
- * @param {string?} [ql_addr='http://127.0.0.1:5700'] qinglong 面板地址
  */
-router.post('/update/jdck', async (ctx, next) => {
+async function parseAndUpdateCK(ctx, next) {
   await next()
   const { ck } = ctx.request.body;
   // 检查参数是否存在且为字符串类型
   if (typeof ck === 'string') {
-    const jdck = parsejdck(ctx.request.body)
+    const jdck = parsejdck(ctx.request.body)??{}
     const { pt_key, pt_pin } = jdck
-    const { client_id = '', client_secret = '', ql_addr = '' } = ctx.request.body
-    
-    if (ql_addr) {
-      QL_CONFIG.QL_ADDR = ql_addr
-    }
-    if (client_id) {
-      QL_CONFIG.CLIENT_ID = client_id
-    }
-    if (client_secret) {
-      QL_CONFIG.CLIENT_SECRET = client_secret
-    }
 
     const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })
     ctx.body = {
@@ -155,7 +109,7 @@ router.post('/update/jdck', async (ctx, next) => {
     };
     console.log(message);
   }
-})
+}
 
 /**
  * 更新青龙环境变量
@@ -192,14 +146,10 @@ async function doUpdateJDCK(params) {
  * @return 青龙token
  */
 async function getQLToken() {
-  const client_id = QL_CONFIG.CLIENT_ID
-  const client_secret = QL_CONFIG.CLIENT_SECRET
-  const QL_ADDR = QL_CONFIG.QL_ADDR
-
   try {
-    const { code, data, message } = await ql.login(client_id, client_secret, QL_ADDR)
-    console.log('getQLToken ' + 'code = ' + code + ', token = ' + data + ', message = ' + message)
-    return { code, token: data, message }
+    const { code, data, message } = await ql.login()
+    console.log('getQLToken ' + 'code = ' + code + ', token = ' + data.token + ', message = ' + message)
+    return { code, token: data.token, message }
   } catch (result) {
     console.log('getQLToken error = ' + JSON.stringify(result))
     const error = result
@@ -287,4 +237,9 @@ async function handleQLEnvs(token, envs = [], jdck = {}) {
   }
 }
 
-module.exports = router
+module.exports = {
+  doUpdateJDCK,
+  parseAndUpdateCK,
+  parseJDCK,
+  updateJDCK
+}
