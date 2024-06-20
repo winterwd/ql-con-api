@@ -186,14 +186,11 @@ class JDCK {
       await delay(2);
       
       const ck = "pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_xxxx13dd;";
-      ctx.state.ck = ck
       ctx.body = {
         code: 200,
         message: 'mock 登录成功',
         data: { ck }
       }
-
-      console.log('mock checkCode ctx.state = ', ctx.state)
     };
     
     await fetchData();

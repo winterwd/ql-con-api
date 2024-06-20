@@ -1,5 +1,37 @@
 <%- include('./include/header')%>
     <title><%= title%></title>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // data: "pt_key=xxx;pt_pin=xxx;"
+        var data = localStorage.getItem("ck");
+        console.log('localStorage.ck = ', data)
+        if (!data) {
+          // window.location.href = "/home";
+        }
+        else {
+          function maskString(str) {
+            if (str.length <= 20) {
+              return str;
+            }
+
+            let start = str.slice(0, 10);
+            let end = str.slice(-10);
+            return start + '***' + end;
+          }
+
+          //取出 pt_key 和 pt_pin
+          const temp = data.split(';');
+          const pt_key = temp[0].split('=')[1];
+          const pt_pin = temp[1].split('=')[1];
+
+          const ck = `pt_key=${maskString(pt_key)};pt_pin=${pt_pin};`;
+          document.querySelector('.formbox').innerHTML = `
+            <label>京东账号: ${pt_pin}</label>
+            <label>京东CK: ${ck}</label>
+          `
+        }
+      });
+    </script>
 </head>
 <body>
   <div class="center">
@@ -7,6 +39,6 @@
  </div>
 
  <div class="formbox">
-    <label>ck: <%= ck%></label>
+    <label>ck: <%= title%></label>
  </div>
 </body>
