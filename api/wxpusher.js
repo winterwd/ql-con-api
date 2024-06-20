@@ -20,7 +20,7 @@ async function callback(ctx, next) {
   const code = 200
   const message = 'success'
   const data = ctx.request.body
-  return ctx.body = { code, message, data}
+  return ctx.body = { code, message, data }
 }
 
 module.exports = {

@@ -42,7 +42,7 @@ async function parseJDCK(ctx, next) {
  */
 async function updateJDCK(ctx, next) {
   await next()
-  const { pt_key, pt_pin } = ctx.request.body.ck??{}
+  const { pt_key, pt_pin } = ctx.request.body.ck ?? {}
   const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })
   return ctx.body = { code, message }
 }
@@ -93,7 +93,7 @@ async function parseAndUpdateCK(ctx, next) {
   const { ck } = ctx.request.body;
   // 检查参数是否存在且为字符串类型
   if (typeof ck === 'string') {
-    const jdck = parsejdck(ctx.request.body)??{}
+    const jdck = parsejdck(ctx.request.body) ?? {}
     const { pt_key, pt_pin } = jdck
 
     const { code, message } = await doUpdateJDCK({ pt_key, pt_pin })

@@ -9,7 +9,7 @@ const ViewsRouter = require('./views/router/index')
 
 const path = require('path')
 const views = require('koa-views')
-const statics =  require('koa-static')
+const statics = require('koa-static')
 
 const staticPath = './views/static'
 
@@ -19,7 +19,7 @@ app.use(statics(
 
 // 加载模板引擎
 app.use(views(path.join(__dirname, './views'), {
-    extension: 'ejs'
+  extension: 'ejs'
 }))
 
 /** 整体请求方式配置基本信息 */

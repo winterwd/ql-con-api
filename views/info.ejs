@@ -1,44 +1,77 @@
 <%- include('./include/header')%>
-    <title><%= title%></title>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // data: "pt_key=xxx;pt_pin=xxx;"
-        var data = localStorage.getItem("ck");
-        console.log('localStorage.ck = ', data)
-        if (!data) {
-          // window.location.href = "/home";
-        }
-        else {
-          function maskString(str) {
-            if (str.length <= 20) {
-              return str;
-            }
+  <title>
+    <%= title%>
+  </title>
+  </head>
 
-            let start = str.slice(0, 10);
-            let end = str.slice(-10);
-            return start + '***' + end;
+  <body>
+    <div class="titleBar">
+      <label style="font-size: larger;">
+        <%= title%>
+      </label>
+    </div>
+
+    <div class="formbox">
+      <div class="form-group">
+        <label id="pinLabel">测试</label>
+      </div>
+      <div class="form-group">
+        <label id="ckLabel">测试</label>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', viewDidLoad)
+      function viewDidLoad() {
+        // 获取 localStorage 中的 ck
+        // data: "pt_key=xxx;pt_pin=xxx;"
+        const ck = localStorage.getItem("ck");
+        const ckExpired = localStorage.getItem("ckExpired");
+        console.log('localStorage.ck = ', ck)
+
+        if (!ck || !ckExpired || ckExpired < Date.now()) {
+          // 没有数据或者过期
+          window.location.href = "/home";
+          return
+        }
+
+        const ckData = formatCKData(ck);
+        updateViewLabelData(ckData);
+
+        
+      }
+
+      function updateViewLabelData(params) {
+        const { pt_key, pt_pin, maskCK } = params
+
+        const pinLabel = document.getElementById('pinLabel')
+        pinLabel.textContent = `京东账号: ${pt_pin}`;
+        const ckLabel = document.getElementById('ckLabel')
+        ckLabel.textContent = `京东CK: ${maskCK}`;
+      }
+
+      function formatCKData(ck = '') {
+        function maskString(str) {
+          if (str.length <= 20) {
+            return str;
           }
 
-          //取出 pt_key 和 pt_pin
-          const temp = data.split(';');
-          const pt_key = temp[0].split('=')[1];
-          const pt_pin = temp[1].split('=')[1];
-
-          const ck = `pt_key=${maskString(pt_key)};pt_pin=${pt_pin};`;
-          document.querySelector('.formbox').innerHTML = `
-            <label>京东账号: ${pt_pin}</label>
-            <label>京东CK: ${ck}</label>
-          `
+          let start = str.slice(0, 10);
+          let end = str.slice(-10);
+          return start + '***' + end;
         }
-      });
-    </script>
-</head>
-<body>
-  <div class="center">
-    <h3><%= title%></h3>
- </div>
 
- <div class="formbox">
-    <label>ck: <%= title%></label>
- </div>
-</body>
+        //取出 pt_key 和 pt_pin
+        const temp = ck.split(';');
+        const pt_key = temp[0].split('=')[1];
+        const pt_pin = temp[1].split('=')[1];
+        const maskCK = `pt_key=${maskString(pt_key)};pt_pin=${pt_pin};`;
+
+        return {
+          pt_key,
+          pt_pin,
+          maskCK
+        }
+      }
+    </script>
+  </body>

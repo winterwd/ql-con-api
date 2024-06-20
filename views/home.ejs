@@ -1,56 +1,64 @@
 <%- include('./include/header')%>
-    <title><%= title%></title>
-    <style>
-      .loading {
-        background-color: #ccc;
-        cursor: not-allowed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-  
-      .spinner {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(149, 120, 120, 0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spin 0.8s linear infinite;
-      }
-  
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
+  <title>
+    <%= title%>
+  </title>
+  <style>
+    .loading {
+      background-color: #ccc;
+      cursor: not-allowed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-    <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            // 打开这个页面就清除本地缓存的ck
-            localStorage.removeItem('ck')
-          })
-    </script>
-</head>
-<body>
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(149, 120, 120, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 打开这个页面就清除本地缓存的ck
+      localStorage.removeItem('ck')
+      localStorage.removeItem('ckExpired')
+    })
+  </script>
+  </head>
+
+  <body>
     <div class="titleBar">
-       <label style="font-size: larger;"><%= title%></label>
+      <label style="font-size: larger;">
+        <%= title%>
+      </label>
     </div>
-    
+
     <div class="formbox">
-        <form>
-            <div class="form-group">
-              <label for="inputPhone">京东账号</label>
-              <input type="phone" class="form-control" id="inputPhone" placeholder="请输入手机号">
-            </div>
-            <div>
-              <label for="inputSmsCode">短信验证码</label>
-              <div class="input-group">
-                <input type="number" class="form-control" id="inputSmsCode" placeholder="请输入验证码">
-                <button type="button" onclick="getCode()" class="btn btn-success codebtn" id="smsCodeButton">获取验证码</button>
-              </div>
-            </div>
-            <button type="button" onclick="checkCode()" class="btn btn-success submitbtn" id="loginButton">登录并提交</button>
-          </form>
+      <form>
+        <div class="form-group">
+          <label for="inputPhone">京东账号</label>
+          <input type="phone" class="form-control" id="inputPhone" placeholder="请输入手机号">
+        </div>
+        <div>
+          <label for="inputSmsCode">短信验证码</label>
+          <div class="input-group">
+            <input type="number" class="form-control" id="inputSmsCode" placeholder="请输入验证码">
+            <button type="button" onclick="getCode()" class="btn btn-success codebtn" id="smsCodeButton">获取验证码</button>
+          </div>
+        </div>
+        <button type="button" onclick="checkCode()" class="btn btn-success submitbtn" id="loginButton">登录并提交</button>
+      </form>
     </div>
 
     <script>
@@ -71,7 +79,7 @@
       function getCode() {
         const phone = document.getElementById('inputPhone').value
         console.log('input phone:', phone)
-        
+
         const phoneRegex = /^1[3-9]\d{9}$/;
         if (!phoneRegex.test(phone)) {
           alert('手机号格式错误')
@@ -82,7 +90,7 @@
         console.log('fetch api/sendSms:', phone)
 
         this.showLoading('smsCodeButton')
-        const params = new URLSearchParams({ phone}).toString();
+        const params = new URLSearchParams({ phone }).toString();
         const url = 'api/sendSms?' + params;
 
         fetch(url, {
@@ -91,21 +99,21 @@
             'Content-Type': 'application/json'
           }
         })
-        .then(res => res.json())
-        .then(res => {
-          if (res.code == 200) {
-            user.gsalt = res.data.gsalt
-            user.guid = res.data.guid
-            user.lsid = res.data.lsid
-            user.mobile = res.data.mobile
-            user.hasCode = true
-          }
-          alert(res.message)
-        })
-        .catch(err => console.log(err))
-        .finally(() => {
-          getCodeFinished.call(this)
-        })
+          .then(res => res.json())
+          .then(res => {
+            if (res.code == 200) {
+              user.gsalt = res.data.gsalt
+              user.guid = res.data.guid
+              user.lsid = res.data.lsid
+              user.mobile = res.data.mobile
+              user.hasCode = true
+            }
+            alert(res.message)
+          })
+          .catch(err => console.log(err))
+          .finally(() => {
+            getCodeFinished.call(this)
+          })
       }
 
       function getCodeFinished() {
@@ -124,16 +132,16 @@
         button.disabled = true;
         let remainingTime = 10;
         button.textContent = `重新获取 ${remainingTime}s`;
-        
-        const countdown = setInterval(function() {
-            remainingTime--;
-            if (remainingTime > 0) {
-                button.textContent = `重新获取 ${remainingTime}s`;
-            } else {
-              button.disabled = false;
-              button.textContent = '获取验证码';
-              clearCountdown();
-            }
+
+        const countdown = setInterval(function () {
+          remainingTime--;
+          if (remainingTime > 0) {
+            button.textContent = `重新获取 ${remainingTime}s`;
+          } else {
+            button.disabled = false;
+            button.textContent = '获取验证码';
+            clearCountdown();
+          }
         }, 1000);
 
         function clearCountdown() {
@@ -147,7 +155,7 @@
         window.addEventListener('beforeunload', clearCountdown);
         // 组件卸载或页面导航时清除计时器
         window.addEventListener('unload', clearCountdown);
-    }
+      }
 
       // 校验验证码
       function checkCode() {
@@ -164,7 +172,7 @@
 
         console.log('fetch api/checkCode: ', smscode)
         this.showLoading('loginButton')
-        
+
         const url = 'api/checkCode?smscode=' + smscode
         fetch(url, {
           method: 'POST',
@@ -178,45 +186,52 @@
             mobile: user.mobile
           })
         })
-        .then(res => res.json())
-        .then(res => {
-          console.log('checkCode res:', res)
-          if (res.code == 200) {
-            user.ck = res.data.ck
-          }
-          alert(res.message)
-        })
-        .catch(err => console.log(err))
-        .finally(() => {
-          loginFinished.call(this)
-        })
+          .then(res => res.json())
+          .then(res => {
+            console.log('checkCode res:', res)
+
+            let message = res.message
+            if (res.code == 200) {
+              user.ck = res.data.ck
+              message += "\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!\n"
+            }
+            alert(message)
+          })
+          .catch(err => console.log(err))
+          .finally(() => {
+            loginFinished.call(this)
+          })
       }
-      
+
       function loginFinished() {
         this.hideLoading('loginButton')
         if (user.ck) {
           localStorage.setItem('ck', user.ck)
+          // 暂定：过期时间为 24 小时
+          const ckExpired = Date.now() + 1000 * 60 * 60 * 24
+          localStorage.setItem('ckExpired', ckExpired)
           console.log('redirect to /info')
           window.location.href = '/info'
           user = null
         }
       }
 
-      function showLoading(id='') {
+      function showLoading(id = '') {
         const button = document.getElementById(id);
         if (!button) return
         button.disabled = true;
         button.classList.add('loading');
         button.innerHTML = `${button.innerText} <div class="spinner" ></div>`;
-    }
+      }
 
-    function hideLoading(id='') {
+      function hideLoading(id = '') {
         const button = document.getElementById(id);
         if (!button) return
         button.disabled = false;
         button.classList.remove('loading');
         button.innerHTML = button.innerText;
-    }
-  </script>
-</body>
-</html>
+      }
+    </script>
+  </body>
+
+  </html>
