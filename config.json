@@ -5,6 +5,10 @@
   "client_secret":"xx",
   "#ql_addr": "默认使用本机地址，如果不一样请修改",
   "ql_addr": "http://127.0.0.1:5700",
-  "#wxpusher": "固定格式，只需修改 xx.api.com",
-  "wxpusher": "http://xx.api.com/api/wxpusher"
+  "#wxpusher_appToken": "wxpusher 的 appToken",
+  "wxpusher_appToken": "AT_xxx",
+  "#wxpusher_uid": "管理员uid, 用于接收车友消息",
+  "wxpusher_uid": "Uid_xxx",
+  "#wxpusher_callback": "回调地址 固定格式，只需修改 xx.api.com",
+  "wxpusher_callback": "http://xx.api.com/api/wxpusher/callback"
 }
