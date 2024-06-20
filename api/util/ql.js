@@ -1,5 +1,5 @@
 const request = require('request');
-const qlConfig = require('./ql_config');
+const qlConfig = require('./config');
 
 let client_id = qlConfig.CLIENT_ID
 let client_secret = qlConfig.CLIENT_SECRET
@@ -406,18 +406,18 @@ function getWxPusherUidConfig(token = '') {
 /**
  * 更新微信推送配置
  *
- * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [json={Uid,pt_pin}] json 微信推送配置
+ * @param {json} [json={uid,pt_pin}] json 微信推送配置
  * @return 更新微信推送配置
  */
-function updateWxPusherUidConfig(token = '', json = {}) {
+function updateWxPusherUidConfig(json = {}) {
   console.log('更新微信推送配置接口')
+  const token = ''
   if (isEmptyString(token)) {
     return { code: 401, message: '更新微信推送配置失败, token 为空' }
   }
   // 判断json是否合法
-  if (isEmptyString(json.Uid) || isEmptyString(json.pt_pin)) {
-    return { code: 400, message: '更新微信推送配置失败, json格式不正确:{Uid:xxx,pt_pin:xxx}' }
+  if (isEmptyString(json.uid) || isEmptyString(json.pt_pin)) {
+    return { code: 400, message: '更新微信推送配置失败, json格式不正确:{uid:xxx,pt_pin:xxx}' }
   }
 
   try {
@@ -426,10 +426,10 @@ function updateWxPusherUidConfig(token = '', json = {}) {
     if (result.code == 200) {
       let fileContent = result.data
       let fileContentJson = JSON.parse(fileContent)
-      // [{Uid:Uid,pt_pin:pt_pin}]
-      // 以 Uid 为准，更新
-      // 查找是否存在 Uid
-      let index = fileContentJson.findIndex(item => item.Uid == json.Uid)
+      // [{uid:uid,pt_pin:pt_pin}]
+      // 以 uid 为准，更新
+      // 查找是否存在 uid
+      let index = fileContentJson.findIndex(item => item.uid == json.uid)
       if (index == -1) {
         // 不存在，插入
         console.log('不存在，插入')

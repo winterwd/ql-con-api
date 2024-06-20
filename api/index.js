@@ -1,11 +1,19 @@
 const router = require('koa-router')()
 const JDCK = require('./jdck/index.js')
+const WxPusher = require('./wxpusher/index.js')
 
 /** 路由模块配置  (前缀) */
 router.prefix('/api')
 
 // wxpusher 回调
-router.post('/wxpusher', require('./wxpusher').callback)
+const wxpusher = new WxPusher()
+
+/** 
+ * wxpusher 回调地址 
+ * 文档地址 https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
+ */
+router.post('/wxpusher/callback', wxpusher.callback)
+router.get('/wxpusher/qrcode', wxpusher.getQRCode)
 
 // 旧接口通过 CK 进行更新
 router.post('/update/jdck', require('./ckTool').parseAndUpdateCK)
