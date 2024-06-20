@@ -11,6 +11,16 @@ class QLToken {
     return new Date(new Date().getTime() + 60 * 60 * 1000) >= this.expiration;
   }
 
+  updateToken(obj={}) {
+    const { token, expiration } = obj
+    if (token == undefined || expiration == undefined) {
+      return
+    }
+    this.token = token
+    this.expiration = new Date(expiration)
+    QLToken.saveNewToken(obj)
+  }
+
   static getToken() {
     return this.fromFile('ql_token.json')
   }
@@ -68,4 +78,4 @@ const newTokenData = {
 };
 QLToken.saveNewToken(newTokenData);
 
-export default QLToken
+module.exports = QLToken
