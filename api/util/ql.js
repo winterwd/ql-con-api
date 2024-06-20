@@ -10,7 +10,7 @@ let client_secret = qlConfig.QL_CLIENT_SECRET
  * @param {string} [str=''] str 字符串
  * @return 是否为空
  */
-function isEmptyString(str) {
+function isEmptyString(str = '') {
   return str.trim().length === 0;
 }
 
@@ -148,7 +148,7 @@ function insertEnvs(token = '', envInfo = {}) {
  * 更新青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [envInfo={name,value,remarks, id}] envInfo 青龙环境变量
+ * @param {string} [envInfo={name,value,remarks,id}] envInfo 青龙环境变量
  * @return 青龙环境变量
  */
 function updateEnvs(token = '', envInfo = {}) {
@@ -459,10 +459,10 @@ class QL {
     this.deleteEnvs = deleteEnvs
     this.enableEnvs = enableEnvs
     this.disableEnvs = disableEnvs
-    this.getScriptFile = getScriptFile
-    this.updateScriptFile = updateScriptFile
-    this.getWxPusherUidConfig = getWxPusherUidConfig
-    this.updateWxPusherUidConfig = updateWxPusherUidConfig
+    // this.getScriptFile = getScriptFile
+    // this.updateScriptFile = updateScriptFile
+    // this.getWxPusherUidConfig = getWxPusherUidConfig
+    // this.updateWxPusherUidConfig = updateWxPusherUidConfig
   }
 }
 

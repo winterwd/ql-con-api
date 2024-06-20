@@ -165,7 +165,7 @@ async function getQLToken() {
 async function getQLEvns(params) {
   const { token } = params
   try {
-    const { code, data, message } = await ql.getEnvs(token, QL_CONFIG.QL_ADDR)
+    const { code, data, message } = await ql.getEnvs(token)
     console.log('getQLEvns ' + 'code = ' + code + ', message = ' + message)
     return { code, data, message }
   } catch (error) {
@@ -205,13 +205,13 @@ async function handleQLEnvs(token, envs = [], jdck = {}) {
     // 找到，更新
     jdCKObj.value = value
     try {
-      const { code, message } = await ql.updateEnvs(token, QL_CONFIG.QL_ADDR, jdCKObj)
+      const { code, message } = await ql.updateEnvs(token, jdCKObj)
       console.log('handleQLEnvs updateEnvs ' + 'code = ' + code + ', message = ' + message)
 
       if (String(jdCKObj.status) === '1') {
         // 若status状态为1，表示被禁用，需启用此变量
         console.log('handleQLEnvs pt_pin = ' + pt_pin + ' 未启用')
-        const { code, message } = await ql.enableEnvs(token, QL_CONFIG.QL_ADDR, [jdCKObj.id])
+        const { code, message } = await ql.enableEnvs(token, [jdCKObj.id])
         console.log('handleQLEnvs enableEnvs ' + 'code = ' + code + ', message = ' + message)
         return { code, message }
       }
@@ -228,7 +228,7 @@ async function handleQLEnvs(token, envs = [], jdck = {}) {
       value: value,
     }
     try {
-      const { code, message, data } = await ql.insertEnvs(token, QL_CONFIG.QL_ADDR, jdCKObj)
+      const { code, message, data } = await ql.insertEnvs(token, jdCKObj)
       console.log('handleQLEnvs insertEnvs ' + 'code = ' + code + ', message = ' + message)
       return { code, data, message }
     } catch (error) {
