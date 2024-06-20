@@ -410,7 +410,7 @@ function getWxPusherUidConfig(token = '') {
  * @param {string} [json={Uid,pt_pin}] json 微信推送配置
  * @return 更新微信推送配置
  */
-function updateWxPusherUidConfig(token = '',json = {}) {
+function updateWxPusherUidConfig(token = '', json = {}) {
   console.log('更新微信推送配置接口')
   if (isEmptyString(token)) {
     return { code: 401, message: '更新微信推送配置失败, token 为空' }

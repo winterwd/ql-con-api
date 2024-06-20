@@ -10,10 +10,10 @@ console.log('QL_Address:', config.ql_addr);
 console.log('wxpusherCallbackUrl:', config.wxpusher);
 
 let QL_CONFIG = {
-  QL_ADDR: config.ql_addr??"http://127.0.0.1:5700",
-  CLIENT_ID: config.client_id??"",
-  CLIENT_SECRET: config.client_secret??"",
-  VALID: config.client_id&&config.client_secret
+  QL_ADDR: config.ql_addr ?? "http://127.0.0.1:5700",
+  CLIENT_ID: config.client_id ?? "",
+  CLIENT_SECRET: config.client_secret ?? "",
+  VALID: config.client_id && config.client_secret
 }
 
 module.exports = QL_CONFIG

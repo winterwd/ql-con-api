@@ -7,7 +7,7 @@ class JDCK {
     if (process.env.npm_lifecycle_event == 'dev') {
       this.sendSms = this.mockSendSms
       this.checkCode = this.mockCheckCode
-      
+
       return
     }
 
@@ -68,7 +68,7 @@ class JDCK {
       // sendSms接口中的user参数
       const user = ctx.request.body;
       console.log('user:', user)
-      const res = await  this.doTelLogin({
+      const res = await this.doTelLogin({
         gsalt: user.gsalt,
         guid: user.guid,
         lsid: user.lsid,
@@ -114,9 +114,9 @@ class JDCK {
   }
 
   // 登录成功后提交 CK
-  async _updateQLCK(data={}) {
+  async _updateQLCK(data = {}) {
     const { pt_key, pt_pin } = data
-    const res = await ckTool.doUpdateJDCK({pt_key, pt_pin})
+    const res = await ckTool.doUpdateJDCK({ pt_key, pt_pin })
     return res
   }
 
@@ -149,29 +149,29 @@ class JDCK {
       return
     }
 
-    const delay = (s) => new Promise((resolve) => setTimeout(resolve, s*1000));
+    const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {
       await delay(2);
-      
+
       ctx.body = {
         code: 200,
         message: '验证码发送成功',
         data: {
           mobile: phone,
           gsalt: "j3TmuuGcSVwfB2OPrEmlL1J9p1tTDgOW",
-          guid:  "eae890d7268d5e39a652d6f0f0c5f9c0",
-          lsid:  "qHgZ3qAjIofkmGwydoPwU7FnnohktBMU",
+          guid: "eae890d7268d5e39a652d6f0f0c5f9c0",
+          lsid: "qHgZ3qAjIofkmGwydoPwU7FnnohktBMU",
         }
       }
     };
-    
+
     await fetchData();
   }
 
   async mockCheckCode(ctx, next) {
     await next()
     console.log('mock sendSms query:', ctx.request.query)
-    const smscode = ctx.request.query.smscode??''
+    const smscode = ctx.request.query.smscode ?? ''
     if (!new RegExp('\\d{6}').test(smscode)) {
       ctx.body = {
         code: 400,
@@ -181,10 +181,10 @@ class JDCK {
     }
     console.log('mock checkCode body:', ctx.request.body)
 
-    const delay = (s) => new Promise((resolve) => setTimeout(resolve, s*1000));
+    const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {
       await delay(2);
-      
+
       const ck = "pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_xxxx13dd;";
       ctx.body = {
         code: 200,
@@ -192,7 +192,7 @@ class JDCK {
         data: { ck }
       }
     };
-    
+
     await fetchData();
   }
 }
