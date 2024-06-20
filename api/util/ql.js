@@ -1,9 +1,9 @@
 const request = require('request');
 const qlConfig = require('./config');
 
-let client_id = qlConfig.CLIENT_ID
-let client_secret = qlConfig.CLIENT_SECRET
 let ql_addr = qlConfig.QL_ADDR
+let client_id = qlConfig.QL_CLIENT_ID
+let client_secret = qlConfig.QL_CLIENT_SECRET
 
 /**
  * 判断字符串是否为空
@@ -34,7 +34,7 @@ function login() {
 
   let code = 400
 
-  if (!qlConfig.VALID) {
+  if (!qlConfig.QL_VALID) {
     return { code, message: ' 请检查client_id 和 请检查client_secret' }
   }
 

@@ -14,9 +14,9 @@ console.log('wxpusherCallbackUrl:', config.wxpusher_callback);
 
 let CONFIG = {
   QL_ADDR: config.ql_addr ?? "http://127.0.0.1:5700",
-  CLIENT_ID: config.client_id ?? "",
-  CLIENT_SECRET: config.client_secret ?? "",
-  VALID: config.client_id && config.client_secret,
+  QL_CLIENT_ID: config.client_id ?? "",
+  QL_CLIENT_SECRET: config.client_secret ?? "",
+  QL_VALID: config.client_id && config.client_secret,
   WXPUSHER_TOKEN: config.wxpusher_appToken ?? "",
   WXPUSHER_URL: config.wxpusher_callback ?? "",
   WXPUSHER_UID: config.wxpusher_uid ?? ""
