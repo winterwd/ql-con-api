@@ -95,7 +95,7 @@ function getEnvs(token = '', key = '') {
           return
         }
 
-        console.log('获取青龙环境变量 result = ' + body)
+        // console.log('获取青龙环境变量 result = ' + body)
         const result = JSON.parse(body)
         if (result.code == 200) {
           resolve({ code: result.code, data: result.data, message: '获取青龙环境变量成功' })
