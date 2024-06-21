@@ -1,5 +1,4 @@
 const jdLib = require('./jdLib.js');
-const request = require('request');
 
 class JDCK {
   constructor() {
@@ -90,15 +89,6 @@ class JDCK {
         data = { ck: cookie }
       }
 
-      // if (code == 200) {
-      //   // 登录成功后提交 CK
-      //   const res = await this._updateQLCK(data)
-      //   console.log('_updateQLCK: ', res)
-
-      //   code = res.code
-      //   message = res.message
-      // }
-
       ctx.body = {
         code: code,
         data: data,
@@ -112,26 +102,6 @@ class JDCK {
       }
     }
   }
-
-  //// 登录成功后提交 CK
-  // async _updateQLCK(data = {}) {
-  //   return new Promise((resolve, reject) => {
-  //     request({
-  //       url: '/ql/jdck_set',
-  //       method: 'POST',
-  //       body: JSON.stringify(data)
-  //   })
-  //     .then((res) => {
-  //       resolve(res)
-  //     })
-  //     .catch((err) => {
-  //       reject({
-  //         code: 400,
-  //         message: '更新CK失败'
-  //       })
-  //     })
-  //   })
-  // }
 
   async getVeriCode(data) {
     console.log('getVeriCode:', data);
