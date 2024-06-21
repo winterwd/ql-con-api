@@ -91,7 +91,7 @@
 
         this.showLoading('smsCodeButton')
         const params = new URLSearchParams({ phone }).toString();
-        const url = 'api/sendSms?' + params;
+        const url = 'api/jd/sendSms?' + params;
 
         fetch(url, {
           method: 'GET',
@@ -173,7 +173,7 @@
         console.log('fetch api/checkCode: ', smscode)
         this.showLoading('loginButton')
 
-        const url = 'api/checkCode?smscode=' + smscode
+        const url = 'api/jd/checkCode?smscode=' + smscode
         fetch(url, {
           method: 'POST',
           headers: {
@@ -188,11 +188,10 @@
         })
           .then(res => res.json())
           .then(res => {
-            console.log('checkCode res:', res)
-
+            // console.log('checkCode res:', res)
             let message = res.message
             if (res.code == 200) {
-              user.ck = res.data.ck
+              user.ck = res.data.value
               message += "\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!"
             }
             alert(message)
