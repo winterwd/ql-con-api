@@ -9,7 +9,7 @@ let timeout = 15000;
 
 // 读取配置文件
 WP_APP_TOKEN = config.WXPUSHER_TOKEN;
-WP_UIDS = [config.WXPUSHER_UID];
+WP_UIDS = config.WXPUSHER_UID;
 
 function wxpusherNotify(text, desp) {
   return new Promise((resolve) => {
@@ -28,7 +28,7 @@ function wxpusherNotify(text, desp) {
       desp = desp.replace(/[\n\r]/g, '<br>'); // 默认为html, 不支持plaintext
       const body = {
         appToken: `${WP_APP_TOKEN}`,
-        content: `${text}\n\n${desp}`,
+        content: `${desp}`,
         summary: `${text}`,
         contentType: 2,
         topicIds: topicIds,

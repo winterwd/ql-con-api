@@ -22,26 +22,30 @@ function findWxPusherUid(params = '') {
   return uid
 }
 
-class QLApi {
+class Api {
   constructor() {
     this.qlToken = QLToken.getToken();
     this.sendNotify = notify.wxpusherNotify
     this.error = { code: 400, message: '操作失败' }
+
+    console.log('qlapi token = ', this.qlToken)
   }
 
   // 用户更新 uid
-  async updateWxPusherUid(pt_pin, uid) {
+  async updateWxPusherUid(data) {
+    const { pt_pin, uid } = data ?? {}
+    console.log('updateWxPusherUid pt_pin = ' + pt_pin + ', uid = ' + uid)
     const user = await this.getUserJDCK(pt_pin)
     if (user) {
-      const nickname = findNickname(user.remarks)??pt_pin
+      const nickname = findNickname(user.remarks) ?? pt_pin
       // remarks: nickname@@timestamp@@Uid_xxxxx
-      user.remarks = `${nickname}@@${Date.getTime()}@@${uid}`
+      user.remarks = `${nickname}@@${Date.now()}@@${uid}`
       try {
         const token = await this.getToken()
         const res = await ql.updateEnvs(token, user)
         if (res.code == 200) {
           // 更新成功 发送推送给管理员
-          this.sendNotify('有用户更新UID啦', `亲爱的车主，当前京东车次用户：${nickname}，更新了Uid：${uid}`)
+          this.sendNotify('有用户更新 Uid 啦', `亲爱的车主，当前京东车次用户：${nickname}，更新了Uid：${uid}`)
         }
         return res
       }
@@ -53,14 +57,16 @@ class QLApi {
   }
 
   // 用户修改 JD_COOKIE 备注
-  async updateJDCKRemark(pt_pin, remarks) {
+  async updateRemarks(data) {
+    const { pt_pin, remarks } = data ?? {}
+    console.log('updateRemarks pt_pin = ' + pt_pin + ', remarks = ' + remarks)
     const user = await this.getUserJDCK(pt_pin)
     if (user) {
       // remark: nickname@@timestamp@@Uid_xxxxx
       const nickname = findNickname(user.remarks)
-      console.log('old nickname = ' + nickname??'null')
-      const uid = findWxPusherUid(user.remarks)??''
-      user.remarks = `${remarks}@@${Date.getTime()}@@${uid}`
+      console.log('old nickname = ' + nickname ?? 'null')
+      const uid = findWxPusherUid(user.remarks) ?? ''
+      user.remarks = `${remarks}@@${Date.now()}@@${uid}`
       try {
         const token = await this.getToken()
         const res = await ql.updateEnvs(token, user)
@@ -69,6 +75,7 @@ class QLApi {
           // 更新成功 发送推送给管理员
           this.sendNotify('有用户更新备注啦', `亲爱的车主，当前京东车次用户：${pt_pin}，将备注“${nickname}”修改为：${remarks}`)
         }
+        return res
       } catch (e) {
         return this.error
       }
@@ -87,8 +94,8 @@ class QLApi {
     }
 
     // ck
-    const pt_key = arr[0].split('pt_key=')[1]??''
-    const pt_pin = arr[1].split('pt_pin=')[1]??''
+    const pt_key = arr[0].split('pt_key=')[1] ?? ''
+    const pt_pin = arr[1].split('pt_pin=')[1] ?? ''
     if (pt_key === '' || pt_pin === '') {
       return this.error
     }
@@ -136,6 +143,50 @@ class QLApi {
     }
   }
 
+  async parseAndSubmitCK(data = '') {
+    const { ck } = this.parsejdck(data)
+    console.log('parseAndSubmitCK = ' + ck)
+    if (ck) {
+      return this.submitCK(ck)
+    }
+    return this.error
+  }
+
+  // 解析 文本中的cookie
+  parsejdck(body = {}) {
+    console.log('parsejdck body = ' + body)
+    const ck = body.ck ?? ''
+    // ck 中是否包含 pt_key 和 pt_pin
+    if (ck.includes('pt_key') && ck.includes('pt_pin')) {
+      let pt_key = ''
+      let pt_pin = ''
+
+      // 将 ck 拆分为字符串数组，找出 pt_key 和 pt_pin
+      let temp = ck.split(';')
+      temp.forEach(s => {
+        if (s.includes('pt_key=')) {
+          pt_key = s.split('pt_key=')[1]
+        }
+        else if (s.includes('pt_pin=')) {
+          pt_pin = s.split('pt_pin=')[1]
+        }
+      });
+
+      // 是否存在 pt_key 和 pt_pin
+      if (pt_key && pt_pin) {
+        console.log(`解析京东ck完成，pt_key=${pt_key}, pt_pin=${pt_pin}`);
+        const ck = `pt_key=${pt_key};pt_pin=${pt_pin};`
+        return { pt_key, pt_pin, ck }
+      } else {
+        console.log(`解析京东ck 失败`);
+        return {}
+      }
+    } else {
+      console.log('parsejdck body need to contain pt_key and pt_pin');
+      return {}
+    }
+  }
+
   // 获取指定用户的 JD_COOKIE 环境变量
   async getUserJDCK(pt_pin = '') {
     const cks = await this.getJDCKEnvs()
@@ -145,7 +196,7 @@ class QLApi {
         return ck
       }
     }
-    return null
+    return undefined
   }
 
   // 获取 ql CK 环境变量
@@ -165,7 +216,8 @@ class QLApi {
 
   // 获取 ql token
   async getToken() {
-    if (!this.qlToken.isExpired) {
+    console.log('qlapi getQLToken = ', this.qlToken.token)
+    if (!this.qlToken.isExpired()) {
       return this.qlToken.token
     }
 
@@ -181,16 +233,67 @@ class QLApi {
   }
 
   async loginQL() {
-    try {
-      const { code, data } = await ql.login()
-      console.log('getQLToken code = ' + code + ', token = ' + data.token)
-      return { token: data.token, expiration: data.expiration }
-    } catch (result) {
-      console.log('getQLToken error = ' + JSON.stringify(result))
-      const error = result
-      return error;
-    }
+    console.log('start loginQL')
+    const { code, data } = await ql.login()
+    console.log('getQLToken code = ' + code + ', token = ' + data.token)
+    return { token: data.token ?? '', expiration: data.expiration ?? 0 }
   }
 }
 
-module.exports = QLApi
+const api = new Api()
+class QLAPI {
+  // constructor() {
+  //   api = new Api();
+  // }
+
+  async parseAndSubmitCK(ctx, next) {
+    await next()
+    const data = ctx.request.body ?? {}
+    ctx.body = await api.parseAndSubmitCK(data)
+  }
+
+  async getJDCK(ctx, next) {
+    await next()
+    const pt_pin = ctx.request.query.pt_pin
+    const user = await api.getUserJDCK(pt_pin)
+
+    let data = {}
+    if (user) {
+      const remarks = findNickname(user.remarks)
+      const uid = findWxPusherUid(user.remarks)
+      data = {
+        pt_pin,
+        remarks,
+        uid: uid ?? '',
+        id: user.id,
+        status: user.status
+      }
+
+    }
+    ctx.body = { code: 200, message: '获取成功', data }
+  }
+
+  async submitCK(ctx, next) {
+    await next()
+    const ck = ctx.request.body.ck ?? ''
+    ctx.body = await api.submitCK(ck)
+  }
+
+  async _submitCK(ck) {
+    return await api.submitCK(ck)
+  }
+
+  async updateRemarks(ctx, next) {
+    await next()
+    const { pt_pin, remarks } = ctx.request.body
+    ctx.body = await api.updateRemarks({ pt_pin, remarks })
+  }
+
+  async updateWxPusherUid(ctx, next) {
+    await next()
+    const { pt_pin, uid } = ctx.request.body
+    ctx.body = await api.updateWxPusherUid({ pt_pin, uid })
+  }
+}
+
+module.exports = QLAPI
