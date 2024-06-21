@@ -192,7 +192,7 @@
             let message = res.message
             if (res.code == 200) {
               user.ck = res.data.value
-              message += "\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!"
+              message = "恭喜你，上车成功～\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!"
             }
             alert(message)
           })

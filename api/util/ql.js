@@ -51,14 +51,14 @@ function login() {
         'client_secret': client_secret
       }
     }, function (error, response, body) {
+      console.log('loginUrl result = ' + body)
       if (error !== null) {
         reject(error)
         return
       }
 
       let result = JSON.parse(body)
-      console.log('loginUrl result = ' + body)
-      if (code == 200) {
+      if (result.code == 200) {
         resolve({ ...result, message: '登录成功' })
       }
       else {

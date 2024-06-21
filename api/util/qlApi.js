@@ -115,7 +115,7 @@ class Api {
 
           if (String(user.status) === '1') {
             // 若status状态为1，表示被禁用，需启用此变量
-            res = await ql.updateEnvs(token, [user.id])
+            res = await ql.enableEnvs(token, [user.id])
           }
         }
         return res
@@ -216,17 +216,18 @@ class Api {
 
   // 获取 ql token
   async getToken() {
-    console.log('qlapi getQLToken = ', this.qlToken.token)
     if (!this.qlToken.isExpired()) {
+      console.log('qlapi getQLToken token is valid')
       return this.qlToken.token
     }
-
+    console.log('qlapi getQLToken token isExpired')
     try {
       const { token, expiration } = await this.loginQL()
       if (token && expiration) {
         this.qlToken.updateToken({ token, expiration })
         return token
       }
+      throw new Error('获取 ql token 失败')
     } catch (e) {
       return ''
     }
@@ -234,9 +235,14 @@ class Api {
 
   async loginQL() {
     console.log('start loginQL')
-    const { code, data } = await ql.login()
-    console.log('getQLToken code = ' + code + ', token = ' + data.token)
-    return { token: data.token ?? '', expiration: data.expiration ?? 0 }
+    try {
+      const { data } = await ql.login()
+      console.log('loginQL data = ' + JSON.stringify(data))
+      return { token: data.token ?? '', expiration: data.expiration ?? 0 }
+    } catch (error) {
+      console.log('start loginQL error = ' + JSON.stringify(error))
+      return this.error
+    }
   }
 }
 
