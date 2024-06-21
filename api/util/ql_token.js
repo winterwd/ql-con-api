@@ -9,20 +9,20 @@ class QLToken {
   }
 
   isExpired() {
-    const current = new Date().getTime()
+    const current = parseInt(new Date().getTime() / 1000)
     console.log('QLToken current:', current, 'expiration:', this.expiration)
     // 检查是否过期 提前 60 分钟过期
-    return (current + 60 * 60 * 1000) >= this.expiration;
+    return (current + 60 * 60) >= this.expiration;
   }
 
-  updateToken(obj={}) {
+  updateToken(obj = {}) {
     const { token, expiration } = obj
     console.log('updateToken:', token, expiration)
     if (token == undefined || expiration == undefined) {
       return
     }
     this.token = token
-    this.expiration = new Date(expiration)
+    this.expiration = expiration
     QLToken.saveNewToken(obj)
   }
 
@@ -32,7 +32,15 @@ class QLToken {
 
   static fromFile(filePath, url = 'http://127.0.0.1:5700') {
     try {
-      const tokens = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, '{}');
+      }
+      let text = fs.readFileSync(filePath, 'utf-8');
+      console.log('fromFile text = ', text)
+      if (!text) {
+        text = '{}';
+      }
+      const tokens = JSON.parse(text) ?? {};
       let tokenData = tokens[url];
       if (!tokenData) {
         tokenData = {
@@ -48,6 +56,7 @@ class QLToken {
   }
 
   static saveNewToken(newToken) {
+    console.log('saveNewToken newToken = ', newToken)
     return this.updateTokenToFile(TokenJsonPath, newToken)
   }
 
@@ -55,7 +64,12 @@ class QLToken {
     try {
       let tokens = {};
       if (fs.existsSync(filePath)) {
-        tokens = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        let text = fs.readFileSync(filePath, 'utf-8');
+        console.log('updateTokenToFile text = ', text)
+        if (!text) {
+          text = '{}';
+        }
+        tokens = JSON.parse(text);
       }
       tokens[url] = newTokenData;
       fs.writeFileSync(filePath, JSON.stringify(tokens, null, 2));
