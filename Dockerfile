@@ -1,5 +1,5 @@
-# 使用官方 Node.js 基础镜像，选择一个适合 ARM 架构的版本
-FROM node:17-alpine
+# 使用官方 Node.js 基础镜像
+FROM node:18-alpine
 
 # 创建 app 目录来持有应用
 WORKDIR /usr/src/app

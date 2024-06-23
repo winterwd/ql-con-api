@@ -5,16 +5,16 @@ const QLToken = require('./ql_token');
 const notify = require('../wxpusher/notify.js');
 
 function findNickname(params = '') {
-  // params: nickname@@timestamp@@Uid_xxxxx
+  // params: nickname@@timestamp@@UID_xxxxx
   return params.split('@@')[0]
 }
 
 function findWxPusherUid(params = '') {
-  // params: nickname@@timestamp@@Uid_xxxxx
+  // params: nickname@@timestamp@@UID_xxxxx
   let uid = undefined
   const arr = params.split('@@')
   arr.forEach(item => {
-    if (item.startsWith('Uid_')) {
+    if (item.startsWith('UID_')) {
       uid = item
     }
   });
@@ -38,7 +38,7 @@ class Api {
     const user = await this.getUserJDCK(pt_pin)
     if (user) {
       const nickname = findNickname(user.remarks) ?? pt_pin
-      // remarks: nickname@@timestamp@@Uid_xxxxx
+      // remarks: nickname@@timestamp@@UID_xxxxx
       user.remarks = `${nickname}@@${Date.now()}@@${uid}`
       try {
         const token = await this.getToken()
@@ -62,7 +62,7 @@ class Api {
     console.log('updateRemarks pt_pin = ' + pt_pin + ', remarks = ' + remarks)
     const user = await this.getUserJDCK(pt_pin)
     if (user) {
-      // remark: nickname@@timestamp@@Uid_xxxxx
+      // remark: nickname@@timestamp@@UID_xxxxx
       const nickname = findNickname(user.remarks)
       console.log('old nickname = ' + nickname ?? 'null')
       const uid = findWxPusherUid(user.remarks) ?? ''
@@ -303,6 +303,10 @@ class QLAPI {
     await next()
     const { pt_pin, uid } = ctx.request.body
     ctx.body = await api.updateWxPusherUid({ pt_pin, uid })
+  }
+
+  async _updateWxPusherUid(data) {
+    return await api.updateWxPusherUid(data)
   }
 }
 
