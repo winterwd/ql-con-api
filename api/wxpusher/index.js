@@ -1,7 +1,5 @@
 const request = require('request');
 const Config = require('../util/config');
-const QL = require('../util/ql');
-const ql = new QL();
 
 /**
  * 获取二维码
@@ -84,13 +82,13 @@ class WxPusher {
     }
 
     ctx.status = 200
-    ctx.body = { code: 200, message: '收到关注事件' }
     // 没有 extra 不做更新
     if (extra == undefined || extra == '') {
+      ctx.body = { code: 400, message: '没有 extra' }
       return
     }
 
-    ql.updateWxPusherUidConfig({ pt_pin: extra, uid: uid })
+    ctx.body = { code: 200, message: '收到关注事件', data: { pt_pin: extra, uid: uid } }
   }
 
   /**

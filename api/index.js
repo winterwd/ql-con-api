@@ -12,7 +12,23 @@ const wxpusher = new WxPusher()
  * wxpusher 回调地址 
  * 文档地址 https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
  */
-router.post('/wxpusher/callback', wxpusher.callback)
+// router.post('/wxpusher/callback', wxpusher.callback)
+router.post('/wxpusher/callback', async (ctx, next) => {
+  await wxpusher.callback(ctx, next)
+  let res = ctx.body
+  console.log('/wxpusher/callback res:', res)
+  const { data, code } = res
+  if (code === 200) {
+    // 成功收到用户关注回调事件
+    res = await qlApi._updateWxPusherUid(data)
+    console.log('updateWxPusherUid res:', res)
+    if (res.code === 200) {
+      res.data = {}
+    }
+  }
+  ctx.body = res;
+})
+
 /**
  * 获取二维码
  * @api {get} /wxpusher/qrcode 获取JD_COOKIE
@@ -51,7 +67,6 @@ router.post('/ql/remarks', qlApi.updateRemarks)
  * @param {string} uid uid
  */
 router.post('/ql/wxpusher_uid', qlApi.updateWxPusherUid)
-
 
 // JD_COOKIE
 const jdck = new JDCK()
