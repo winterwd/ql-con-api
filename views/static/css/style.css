@@ -9,12 +9,6 @@ body {
   height: auto;
 }
 
-label {
-  display: inline-block;
-  margin-bottom: .5rem;
-  font-size: 17px;
-}
-
 .formbox {
   width: 300px;
   margin: auto;
