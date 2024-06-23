@@ -78,6 +78,9 @@ router.post('/jd/checkCode', async (ctx, next) => {
     // jd 短信登录成功后提交CK
     res = await qlApi._submitCK(data.ck)
     console.log('/jd/checkCode submitCK res:', res)
+    if (res.code === 200) {
+      res.data = data
+    }
   }
   ctx.body = res;
 });

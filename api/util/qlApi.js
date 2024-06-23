@@ -189,6 +189,9 @@ class Api {
 
   // 获取指定用户的 JD_COOKIE 环境变量
   async getUserJDCK(pt_pin = '') {
+    if (pt_pin === '') {
+      return undefined
+    }
     const cks = await this.getJDCKEnvs()
     for (let i = 0; i < cks.length; i++) {
       const ck = cks[i]
@@ -263,20 +266,21 @@ class QLAPI {
     const pt_pin = ctx.request.query.pt_pin
     const user = await api.getUserJDCK(pt_pin)
 
-    let data = {}
     if (user) {
       const remarks = findNickname(user.remarks)
       const uid = findWxPusherUid(user.remarks)
-      data = {
+      const data = {
         pt_pin,
         remarks,
         uid: uid ?? '',
         id: user.id,
         status: user.status
       }
-
+      ctx.body = { code: 200, message: '获取成功', data }
     }
-    ctx.body = { code: 200, message: '获取成功', data }
+    else {
+      ctx.body = {code: 400, message: '获取失败'}
+    }
   }
 
   async submitCK(ctx, next) {
