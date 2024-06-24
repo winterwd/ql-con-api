@@ -91,11 +91,14 @@ router.post('/jd/checkCode', async (ctx, next) => {
   const { data, code } = res
   if (code === 200) {
     // jd 短信登录成功后提交CK
-    res = await qlApi._submitCK(data.ck)
-    console.log('/jd/checkCode submitCK res:', res)
-    if (res.code === 200) {
-      res.data = data
+    const ckRes = await qlApi._submitCK(data.ck)
+    console.log('/jd/checkCode submitCK res:', ckRes)
+    if (ckRes.code !== 200) {
+      ckRes.message = "提交失败, 请点击下方'重新提交'"
     }
+    // 将登录的 CK 传下去
+    ckRes.data = data
+    res = ckRes
   }
   ctx.body = res;
 });

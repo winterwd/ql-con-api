@@ -17,9 +17,12 @@ class JDCK {
   // 发送验证码
   async _sendSms(ctx, next) {
     await next()
-    const { phone } = ctx.request.query
+    const phone = ctx.request.query.phone ?? ''
+    console.log('sendSms query.phone:', phone)
+
     // 是否合法手机号正则
-    if (!new RegExp('\\d{11}').test(phone)) {
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
       ctx.body = {
         code: 400,
         message: '手机号格式错误'
@@ -28,12 +31,11 @@ class JDCK {
       return
     }
 
-    console.log('sendSms phone:', phone)
     try {
       const user = await jdLib.init()
       user.mobile = phone
       const res = await this.getVeriCode(user)
-      console.log(res)
+      console.log('getVeriCode res:', res)
 
       const code = res.err_code == 0 ? 200 : 400
       ctx.body = {
@@ -54,19 +56,20 @@ class JDCK {
   async _checkCode(ctx, next) {
     await next()
     const smscode = ctx.request.query.smscode
-    if (!new RegExp('\\d{6}').test(smscode)) {
+    console.log('checkCode:', smscode)
+
+    const regex = /^\d{6}$/;
+    if (!regex.test(smscode)) {
       ctx.body = {
         code: 400,
         message: '验证码格式错误'
       }
       return
     }
-
-    console.log('checkCode:', smscode)
     try {
       // sendSms接口中的user参数
       const user = ctx.request.body;
-      console.log('user:', user)
+      console.log('checkCode request.body:', user)
       const res = await this.doTelLogin({
         gsalt: user.gsalt,
         guid: user.guid,
@@ -74,7 +77,7 @@ class JDCK {
         mobile: user.mobile,
         smscode: smscode,
       });
-      console.log(res)
+      console.log('checkCode doTelLogin res:', res)
 
       let code = 400, data = {}, message = '登录失败:' + res.err_msg
       if (res.err_code == 0) {
@@ -104,13 +107,11 @@ class JDCK {
   }
 
   async getVeriCode(data) {
-    console.log('getVeriCode:', data);
     const res = await jdLib.getVeriCode(data);
     return res;
   }
 
   async doTelLogin(data) {
-    console.log('doTelLogin:', data);
     const res = await jdLib.doTelLogin(data);
     return res;
   }
@@ -118,8 +119,8 @@ class JDCK {
   // mock
   async mockSendSms(ctx, next) {
     await next()
-    const { phone } = ctx.request.query
-    console.log('mock sendSms query:', ctx.request.query)
+    const phone = ctx.request.query.phone ?? ''
+    console.log('mock sendSms query.phone:', phone)
 
     // 是否合法手机号正则
     const phoneRegex = /^1[3-9]\d{9}$/;
@@ -153,9 +154,11 @@ class JDCK {
 
   async mockCheckCode(ctx, next) {
     await next()
-    console.log('mock sendSms query:', ctx.request.query)
     const smscode = ctx.request.query.smscode ?? ''
-    if (!new RegExp('\\d{6}').test(smscode)) {
+    console.log('mock sendSms query.smscode:', smscode)
+
+    const regex = /^\d{6}$/;
+    if (!regex.test(smscode)) {
       ctx.body = {
         code: 400,
         message: '验证码格式错误'
@@ -163,12 +166,12 @@ class JDCK {
       return
     }
     console.log('mock checkCode body:', ctx.request.body)
-
+    const { mobile } = ctx.request.body
     const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {
       await delay(2);
 
-      const ck = "pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_xxxx13dd;";
+      const ck = `pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_mock_${mobile};`;
       ctx.body = {
         code: 200,
         message: 'mock 登录成功',

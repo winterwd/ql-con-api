@@ -88,8 +88,10 @@ class Api {
   // 用户提交 CK
   async submitCK(ck = '') {
     // ck: pt_key=xxx;pt_pin=xxx;
+    console.log('submitCK ck = ' + ck)
     const arr = ck.split(';')
     if (arr.length < 2) {
+      console.log('asubmitCK arr.length = ' + arr.length)
       return this.error
     }
 
@@ -97,6 +99,7 @@ class Api {
     const pt_key = arr[0].split('pt_key=')[1] ?? ''
     const pt_pin = arr[1].split('pt_pin=')[1] ?? ''
     if (pt_key === '' || pt_pin === '') {
+      console.log('asubmitCK pt_key = ' + pt_key, 'pt_pin = ' + pt_pin)
       return this.error
     }
 

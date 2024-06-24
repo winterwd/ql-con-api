@@ -14,6 +14,7 @@ async function homeView(ctx) {
 home.get('/', homeView)
 .get('/home', homeView)
 
+// info
 const info = new Router()
 info.get('/', async (ctx) => {
   console.log('start info view')

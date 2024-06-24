@@ -5,62 +5,64 @@
   </head>
 
   <body>
-    <div class="titleBar" id="titleBar">
-      <label>
-        <%= title%>
-      </label>
-    </div>
-
-    <div class="welcome">
-      <label>
-        您好，欢迎使用！
-      </label>
-    </div>
-
-    <!-- 个人信息 -->
-    <div class="container" id="info-container" style="display: none;">
-      <div class="section">
-        <p>京东账号：</p>
-        <label id="ptpinLabel"></label>
+    <div class="body-container">
+      <div class="titleBar" id="titleBar">
+        <label>
+          <%= title%>
+        </label>
       </div>
-      <div class="section">
-        <p>备注信息：</p>
-        <label id="remarkLabel"></label>
-        <button type="button" id="modfiyRemark" class="custombtn" onclick="openRemarkModal()">修改备注</button>
-      </div>
-      <div class="section">
-        <p>消息推送UID：</p>
-        <label id="notifyLabel"></label>
-        <button type="button" id="openWxPusher" class="custombtn" onclick="openWxPusherQRCode()">绑定微信</button>
-      </div>
-    </div>
 
-    <!-- 备注弹窗 -->
-    <div id="remarkModal" class="modal" style="display: none;">
-      <div class="modal-container-center">
-        <div class="modal-header"><label>修改备注</label></div>
-        <div class="modeal-input-field">
-          <input class="modeal-input" type="text" id="remarkInput" placeholder="请输入备注">
+      <div class="welcome">
+        <label>
+          您好，欢迎使用！
+        </label>
+      </div>
+
+      <!-- 个人信息 -->
+      <div class="container" id="info-container" style="display: none;">
+        <div class="section">
+          <p>京东账号：</p>
+          <label id="ptpinLabel"></label>
         </div>
-        <div class="modal-footer">
-          <div class="modal-footer-hline"></div>
-          <div class="modal-footer-buttons">
-            <button class="modal-footer-cancelbtn" onclick="closeRemarkModal()">取消</button>
-            <div class="modal-footer-vline"></div>
-            <button class="modal-footer-savebtn" id="saveRemark" onclick="saveRemark()">确认</button>
+        <div class="section">
+          <p>备注信息：</p>
+          <label id="remarkLabel"></label>
+          <button type="button" id="modfiyRemark" class="custombtn" onclick="openRemarkModal()">修改备注</button>
+        </div>
+        <div class="section">
+          <p>消息推送UID：</p>
+          <label id="notifyLabel"></label>
+          <button type="button" id="openWxPusher" class="custombtn" onclick="openWxPusherQRCode()">绑定微信</button>
+        </div>
+      </div>
+
+      <!-- 备注弹窗 -->
+      <div id="remarkModal" class="modal" style="display: none;">
+        <div class="modal-container-center">
+          <div class="modal-header"><label>修改备注</label></div>
+          <div class="modeal-input-field">
+            <input class="modeal-input" type="text" id="remarkInput" placeholder="请输入备注">
+          </div>
+          <div class="modal-footer">
+            <div class="modal-footer-hline"></div>
+            <div class="modal-footer-buttons">
+              <button class="modal-footer-cancelbtn" onclick="closeRemarkModal()">取消</button>
+              <div class="modal-footer-vline"></div>
+              <button class="modal-footer-savebtn" id="saveRemark" onclick="saveRemark()">确认</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 二维码弹窗 -->
-    <div id="notifyModal" class="modal-bottom" style="display: none;">
-      <div class="modal-bottom-container" onclick="closeNotifyModal()">
-        <div class="modal-bottom-content">
-          <img id="WxPusherQRCode" src="" alt="QRCode">
-          <span>WxPusher 二维码</span>
-          <label>请使用微信扫码绑定</label>
-          <button class="custombtn" onclick="bindWxPusherQRCode()">已绑定</button>
+      <!-- 二维码弹窗 -->
+      <div id="notifyModal" class="modal-bottom" style="display: none;">
+        <div class="modal-bottom-container" onclick="closeNotifyModal()">
+          <div class="modal-bottom-content">
+            <img id="WxPusherQRCode" src="" alt="QRCode">
+            <span>WxPusher 二维码</span>
+            <label>请使用微信扫码绑定</label>
+            <button class="custombtn" onclick="bindWxPusherQRCode()">已绑定</button>
+          </div>
         </div>
       </div>
     </div>

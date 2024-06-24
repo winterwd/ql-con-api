@@ -1,5 +1,7 @@
+const { projectRootDir } = require('./util')
 const fs = require('fs');
-const TokenJsonPath = 'api/util/ql_token.json'
+const staticPath = '/data/ql_token.json'
+const TokenJsonPath = projectRootDir + staticPath
 
 class QLToken {
   constructor(tokenData) {
