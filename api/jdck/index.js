@@ -34,7 +34,7 @@ class JDCK {
     try {
       const user = await jdLib.init()
       user.mobile = phone
-      const res = await this.getVeriCode(user)
+      const res = await jdLib.getVeriCode(user)
       console.log('getVeriCode res:', res)
 
       const code = res.err_code == 0 ? 200 : 400
@@ -70,7 +70,7 @@ class JDCK {
       // sendSms接口中的user参数
       const user = ctx.request.body;
       console.log('checkCode request.body:', user)
-      const res = await this.doTelLogin({
+      const res = await jdLib.doTelLogin({
         gsalt: user.gsalt,
         guid: user.guid,
         lsid: user.lsid,
@@ -104,16 +104,6 @@ class JDCK {
         message: '接口异常'
       }
     }
-  }
-
-  async getVeriCode(data) {
-    const res = await jdLib.getVeriCode(data);
-    return res;
-  }
-
-  async doTelLogin(data) {
-    const res = await jdLib.doTelLogin(data);
-    return res;
   }
 
   // mock
