@@ -8,6 +8,7 @@ class User {
 
     this.hasCode = false
     this.ck = ''
+    this.submitSuccess = false
   }
 }
 let user;
@@ -74,6 +75,7 @@ function getCodeFinished() {
 }
 
 // 重新获取验证码
+let countdown;
 function reGetCode() {
   const button = document.getElementById('smsCodeButton');
   if (!button) return
@@ -81,27 +83,32 @@ function reGetCode() {
   let remainingTime = 60;
   button.textContent = `重新获取 ${remainingTime}s`;
 
-  const countdown = setInterval(function () {
+  countdown = setInterval(function () {
     remainingTime--;
     if (remainingTime > 0) {
       button.textContent = `重新获取 ${remainingTime}s`;
     } else {
-      button.disabled = false;
-      button.textContent = '获取验证码';
       clearCountdown();
     }
   }, 1000);
 
-  function clearCountdown() {
-    console.log('clearCountdown')
-    if (countdown) {
-      clearInterval(countdown);
-    }
-  }
   // 页面卸载时清除计时器
   window.addEventListener('beforeunload', clearCountdown);
   // 组件卸载或页面导航时清除计时器
   window.addEventListener('unload', clearCountdown);
+}
+
+function clearCountdown() {
+  console.log('clearCountdown')
+  if (countdown) {
+    clearInterval(countdown);
+    countdown = 0;
+  }
+
+  const button = document.getElementById('smsCodeButton');
+  if (!button) return
+  button.disabled = false;
+  button.textContent = '获取验证码';
 }
 
 // 校验验证码
@@ -112,7 +119,8 @@ function checkCode() {
   }
 
   const smscode = document.getElementById('inputSmsCode').value
-  if (!new RegExp('\\d{6}').test(smscode)) {
+  const regex = /^\d{6}$/;
+  if (!regex.test(smscode)) {
     alert('验证码格式不正确')
     return
   }
@@ -135,10 +143,10 @@ function checkCode() {
   })
     .then(res => res.json())
     .then(res => {
-      // console.log('checkCode res:', res)
+      user.ck = res.data.ck ?? ''
       let message = res.message
       if (res.code == 200) {
-        user.ck = res.data.ck
+        user.submitSuccess = true
         message = "恭喜你，上车成功～\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!"
       }
       alert(message)
@@ -151,16 +159,66 @@ function checkCode() {
 
 function loginFinished() {
   hideLoading('loginButton')
+  clearCountdown()
+  clearInputSmsCode()
+
+  console.log('loginFinished user.ck:', user.ck, "user.submitSuccess:", user.submitSuccess)
   if (user.ck) {
-    localStorage.setItem('ck', user.ck)
-    localStorage.setItem('mobile', user.mobile)
-    // 暂定：过期时间为 24 小时
-    const ckExpired = Date.now() + 1000 * 60 * 60 * 24
-    localStorage.setItem('ckExpired', ckExpired)
-    console.log('redirect to /info')
-    window.location.href = '/info'
-    user = null
+    if (user.submitSuccess) {
+      // 登录成功并提交成功
+      submitSuccess()
+    }
+    else {
+      // 登录成功但未提交成功
+      document.getElementById('retryButton').style.display = 'block'
+    }
   }
+}
+
+function retrySubmit() {
+  document.getElementById('smsCodeButton').disabled = true
+  document.getElementById('loginButton').disabled = true
+
+  showLoading('retryButton')
+  const ck = user.ck
+  const url = 'api/ql/jdck_set'
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ck })
+  })
+    .then(res => res.json())
+    .then(res => {
+      alert(res.message)
+      if (res.code == 200) {
+        user.submitSuccess = true
+      }
+    })
+    .catch(err => console.log(err))
+    .finally(() => {
+      hideLoading('retryButton')
+      document.getElementById('smsCodeButton').disabled = false
+      document.getElementById('loginButton').disabled = false
+      loginFinished()
+    })
+}
+
+function submitSuccess() {
+  localStorage.setItem('ck', user.ck)
+  localStorage.setItem('mobile', user.mobile)
+  // 暂定：过期时间为 24 小时
+  const ckExpired = Date.now() + 1000 * 60 * 60 * 24
+  localStorage.setItem('ckExpired', ckExpired)
+
+  console.log('redirect to /info')
+  window.location.href = '/info'
+  user = null
+}
+
+function clearInputSmsCode() {
+  document.getElementById('inputSmsCode').value = ''
 }
 
 function showLoading(id = '') {

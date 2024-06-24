@@ -5,32 +5,36 @@
   </head>
 
   <body>
-    <div class="titleBar" id="titleBar">
-      <label>
-        <%= title%>
-      </label>
-    </div>
-
-    <div class="formbox">
-      <form>
-        <div class="form-group">
-          <label for="inputPhone" class="mainTextColor">京东账号</label>
-          <input type="phone" class="form-control custominput" id="inputPhone" placeholder="请输入手机号">
-        </div>
-        <div>
-          <label for="inputSmsCode" class="mainTextColor">短信验证码</label>
-          <div class="input-group">
-            <div class="input-group-nowrap"><input type="number" class="form-control custominput" id="inputSmsCode"
-                placeholder="请输入验证码"></div>
-            <button type="button" onclick="getCode()" class="btn custombtn codebtn" id="smsCodeButton">获取验证码</button>
-          </div>
-        </div>
-        <button type="button" onclick="checkCode()" class="btn custombtn submitbtn" id="loginButton">登录并提交</button>
-      </form>
-    </div>
-
-
     <script src="./js/home.js"></script>
+
+    <div class="body-container">
+      <div class="titleBar" id="titleBar">
+        <label>
+          <%= title%>
+        </label>
+      </div>
+
+      <div class="formbox">
+        <form>
+          <div class="form-group">
+            <label for="inputPhone" class="mainTextColor">京东账号</label>
+            <input type="text" pattern="\d{11}" title="请输入手机号码" class="form-control custominput" id="inputPhone"
+              placeholder="请输入手机号">
+          </div>
+          <div>
+            <label for="inputSmsCode" class="mainTextColor">短信验证码</label>
+            <div class="input-group">
+              <div class="input-group-nowrap"><input type="text" pattern="\d{6}" title="请输入6位数字"
+                  class="form-control custominput" id="inputSmsCode" placeholder="请输入验证码"></div>
+              <button type="button" onclick="getCode()" class="btn custombtn codebtn" id="smsCodeButton">获取验证码</button>
+            </div>
+          </div>
+          <button type="button" onclick="checkCode()" class="btn custombtn submitbtn" id="loginButton">登录并提交</button>
+          <button type="button" onclick="retrySubmit()" class="btn custombtn submitbtn" id="retryButton"
+            style="display: none;">重新提交</button>
+        </form>
+      </div>
+    </div>
   </body>
 
   </html>
