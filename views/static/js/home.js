@@ -59,7 +59,9 @@ function getCode() {
       }
       alert(res.message)
     })
-    .catch(err => // console.log(err))
+    .catch(error => {
+      // console.log(error)
+    })
     .finally(() => {
       getCodeFinished()
     })
@@ -151,7 +153,9 @@ function checkCode() {
       }
       alert(message)
     })
-    .catch(err => // console.log(err))
+    .catch(error => {
+      // console.log(error)
+    })
     .finally(() => {
       loginFinished()
     })
@@ -196,7 +200,9 @@ function retrySubmit() {
         user.submitSuccess = true
       }
     })
-    .catch(err => // console.log(err))
+    .catch(error => {
+      // console.log(error)
+    })
     .finally(() => {
       hideLoading('retryButton')
       document.getElementById('smsCodeButton').disabled = false
