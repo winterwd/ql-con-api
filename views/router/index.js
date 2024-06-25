@@ -1,7 +1,8 @@
 // router/index.js
 const Router = require('koa-router')
+const Config = require('../../api/util/config');
 
-const title = "阿卡+的薅豆车"
+const title = Config.SITE_NAME ?? "薅豆车"
 
 // 首页
 const home = new Router()
@@ -12,7 +13,7 @@ async function homeView(ctx) {
 }
 
 home.get('/', homeView)
-.get('/home', homeView)
+  .get('/home', homeView)
 
 // info
 const info = new Router()
