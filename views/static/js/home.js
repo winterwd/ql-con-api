@@ -27,7 +27,7 @@ function DOMContentLoaded(params) {
 // 获取验证码
 function getCode() {
   const phone = document.getElementById('inputPhone').value
-  console.log('input phone:', phone)
+  // console.log('input phone:', phone)
 
   const phoneRegex = /^1[3-9]\d{9}$/;
   if (!phoneRegex.test(phone)) {
@@ -36,7 +36,7 @@ function getCode() {
   }
 
   user = new User()
-  console.log('fetch api/sendSms:', phone)
+  // console.log('fetch api/sendSms:', phone)
 
   this.showLoading('smsCodeButton')
   const params = new URLSearchParams({ phone }).toString();
@@ -59,7 +59,7 @@ function getCode() {
       }
       alert(res.message)
     })
-    .catch(err => console.log(err))
+    .catch(err => // console.log(err))
     .finally(() => {
       getCodeFinished()
     })
@@ -99,7 +99,7 @@ function reGetCode() {
 }
 
 function clearCountdown() {
-  console.log('clearCountdown')
+  // console.log('clearCountdown')
   if (countdown) {
     clearInterval(countdown);
     countdown = 0;
@@ -125,7 +125,7 @@ function checkCode() {
     return
   }
 
-  console.log('fetch api/checkCode: ', smscode)
+  // console.log('fetch api/checkCode: ', smscode)
   this.showLoading('loginButton')
 
   const url = 'api/jd/checkCode?smscode=' + smscode
@@ -151,7 +151,7 @@ function checkCode() {
       }
       alert(message)
     })
-    .catch(err => console.log(err))
+    .catch(err => // console.log(err))
     .finally(() => {
       loginFinished()
     })
@@ -162,7 +162,7 @@ function loginFinished() {
   clearCountdown()
   clearInputSmsCode()
 
-  console.log('loginFinished user.ck:', user.ck, "user.submitSuccess:", user.submitSuccess)
+  // console.log('loginFinished user.ck:', user.ck, "user.submitSuccess:", user.submitSuccess)
   if (user.ck) {
     if (user.submitSuccess) {
       // 登录成功并提交成功
@@ -196,7 +196,7 @@ function retrySubmit() {
         user.submitSuccess = true
       }
     })
-    .catch(err => console.log(err))
+    .catch(err => // console.log(err))
     .finally(() => {
       hideLoading('retryButton')
       document.getElementById('smsCodeButton').disabled = false
@@ -212,7 +212,7 @@ function submitSuccess() {
   const ckExpired = Date.now() + 1000 * 60 * 60 * 24
   localStorage.setItem('ckExpired', ckExpired)
 
-  console.log('redirect to /info')
+  // console.log('redirect to /info')
   window.location.href = '/info'
   user = null
 }

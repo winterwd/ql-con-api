@@ -61,7 +61,7 @@ app.use(ViewsRouter.routes()).use(ViewsRouter.allowedMethods())
 app.use(logger())
 
 /** 项目启动端口 */
-const host = 'http://127.0.0.1', port = 8970
+const host = 'http://127.0.0.1', port = 8864
 
 /** 启动服务、监听端口 */
 app.listen(port, () => {
