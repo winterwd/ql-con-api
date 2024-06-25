@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # 创建 app 目录来持有应用
-WORKDIR /usr/src/app
+WORKDIR /jdck
 
 # 复制 package.json 和 package-lock.json (如果存在)
 COPY package*.json ./
@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # 你的应用绑定的端口，确保与你的 app 监听的端口一致
-EXPOSE 8970
+EXPOSE 8864
 
 # 告诉 Docker 启动容器时运行什么命令
 CMD [ "node", "index.js" ]
