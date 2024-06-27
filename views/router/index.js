@@ -8,7 +8,7 @@ const title = Config.SITE_NAME ?? "薅豆车"
 const home = new Router()
 
 async function homeView(ctx) {
-  console.log('start homeView')
+  console.log((new Date()).toLocaleString() + '--- start homeView')
   await ctx.render('home', { title })
 }
 

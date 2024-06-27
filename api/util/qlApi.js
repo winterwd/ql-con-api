@@ -293,6 +293,9 @@ class QLAPI {
   }
 
   async _submitCK(ck) {
+    if (process.env.npm_lifecycle_event == 'dev') {
+      return {code:200, message: 'mock 成功'}
+    }
     return await api.submitCK(ck)
   }
 

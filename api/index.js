@@ -1,4 +1,6 @@
 const router = require('koa-router')()
+const RateLimit = require('koa2-ratelimit').RateLimit;
+
 const JDCK = require('./jdck/index.js')
 const WxPusher = require('./wxpusher/index.js')
 
@@ -68,6 +70,15 @@ router.post('/ql/remarks', qlApi.updateRemarks)
  */
 router.post('/ql/wxpusher_uid', qlApi.updateWxPusherUid)
 
+const apiLimiter = RateLimit.middleware({
+  interval: { sec: 5 }, // 1h30 window
+  delayAfter: 1, // begin slowing down responses after the first request
+  timeWait: 3 * 1000, // slow down subsequent responses by 3 seconds per request
+  max: 1, // start blocking after 5 requests
+  message: "手速有点快呀！请慢一点！",
+  messageKey: "message"
+});
+
 // JD_COOKIE
 const jdck = new JDCK()
 /**
@@ -75,7 +86,7 @@ const jdck = new JDCK()
  * @apiName sendSms
  * @param {string} phone 手机号码
  */
-router.get('/jd/sendSms', jdck.sendSms);
+router.get('/jd/sendSms', apiLimiter, jdck.sendSms);
 
 /**
  * @api {post} /checkCode 校验验证码
@@ -84,7 +95,7 @@ router.get('/jd/sendSms', jdck.sendSms);
  * @param {JSON} body参数 sendSms接口中的body参数
  */
 // router.post('/jd/checkCode', jdck.checkCode);
-router.post('/jd/checkCode', async (ctx, next) => {
+router.post('/jd/checkCode', apiLimiter, async (ctx, next) => {
   await jdck.checkCode(ctx, next);
   let res = ctx.body
   console.log('/jd/checkCode checkCode res:', res)

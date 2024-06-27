@@ -136,7 +136,7 @@ class JDCK {
 
     const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {
-      await delay(2);
+      await delay(0);
 
       ctx.body = {
         code: 200,
@@ -170,7 +170,7 @@ class JDCK {
     const { mobile } = ctx.request.body
     const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {
-      await delay(2);
+      await delay(0);
 
       const ck = `pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_mock_${mobile};`;
       ctx.body = {
