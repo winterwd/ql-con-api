@@ -28,13 +28,14 @@ const args = process.argv.splice(2)
   }
 
   const res = await checkCode(data);
-  let code = 400, ret = {}, message = '登录失败:' + res.err_msg
+  let code = 400, ret = {}, message = res.err_msg ?? '登录失败'
   if (res.err_code == 0) {
     code = 200
+    message = '登录成功'
     const cookie =
-      'pt_key:' +
+      'pt_key=' +
       res.data.pt_key +
-      ';pt_pin:' +
+      ';pt_pin=' +
       encodeURIComponent(res.data.pt_pin) +
       ';';
     ret = { ck: cookie }
