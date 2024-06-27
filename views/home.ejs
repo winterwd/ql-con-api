@@ -24,8 +24,10 @@
           <div>
             <label for="inputSmsCode" class="mainTextColor">短信验证码</label>
             <div class="input-group">
-              <div class="input-group-nowrap"><input type="text" pattern="\d{6}" title="请输入6位数字"
-                  class="form-control custominput" id="inputSmsCode" placeholder="请输入验证码"></div>
+              <div class="input-group-nowrap">
+                <input id="inputSmsCode" type="text" pattern="\d{6}" title="请输入6位数字" autocomplete="one-time-code"
+                  class="form-control custominput" placeholder="请输入验证码">
+              </div>
               <button type="button" onclick="getCode()" class="btn custombtn codebtn" id="smsCodeButton">获取验证码</button>
             </div>
           </div>

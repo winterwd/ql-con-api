@@ -18,7 +18,7 @@ const args = process.argv.splice(1)
   let ret = {
     code: code,
     data: code === 200 ? user : {},
-    message: code === 200 ? res.err_msg : '验证码发送成功'
+    message: code === 200 ? '验证码发送成功' : res.err_msg ?? '验证码发送失败'
   }
   console.log(JSON.stringify(ret))
 })()
