@@ -12,8 +12,7 @@ const args = process.argv.splice(1)
 
   const user = await jdLib.init();
   user.mobile = phone;
-  // const res = await sendSms(user);
-  const res = { err_code: 0, err_msg: '验证码发送成功' }
+  const res = await sendSms(user);
 
   const code = res.err_code == 0 ? 200 : 400
   let ret = {
