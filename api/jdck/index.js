@@ -1,4 +1,24 @@
-const jdLib = require('./jdLib.js');
+const exec = require('child_process').exec;
+const { projectRootDir } = require('../util/util')
+
+/**
+ * 执行外部脚本并获取其输出
+ * @param {string} scriptPath - 脚本文件路径
+ * @param {string[]} [args=[]] - 脚本参数数组
+ * @returns {Promise<string>} - 脚本输出
+ */
+const executeScript = (scriptPath, args = []) => {
+  return new Promise((resolve, reject) => {
+    const command = `node ${scriptPath} ${args.join(' ')}`;
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error: ${stderr}`);
+      } else {
+        resolve(stdout.trim());
+      }
+    });
+  });
+};
 
 class JDCK {
   constructor() {
@@ -6,7 +26,7 @@ class JDCK {
     if (process.env.npm_lifecycle_event == 'dev') {
       this.sendSms = this.mockSendSms
       this.checkCode = this.mockCheckCode
-
+      console.log('process dev mode')
       return
     }
 
@@ -32,17 +52,12 @@ class JDCK {
     }
 
     try {
-      const user = await jdLib.init()
-      user.mobile = phone
-      const res = await jdLib.getVeriCode(user)
-      console.log('getVeriCode res:', res)
-
-      const code = res.err_code == 0 ? 200 : 400
-      ctx.body = {
-        code: code,
-        data: user,
-        message: res.err_msg || '验证码发送成功'
-      }
+      // sendSms接口中的user参数
+      const path = projectRootDir + '/api/jdck/sendSms.js'
+      var res = await executeScript(path, [`phone=${phone}`]);
+      res = JSON.parse(res)
+      console.log('sendSms res:', res)
+      ctx.body = res
     } catch (error) {
       console.log(error);
       ctx.body = {
@@ -70,33 +85,18 @@ class JDCK {
       // sendSms接口中的user参数
       const user = ctx.request.body;
       console.log('checkCode request.body:', user)
-      const res = await jdLib.doTelLogin({
-        gsalt: user.gsalt,
-        guid: user.guid,
-        lsid: user.lsid,
-        mobile: user.mobile,
-        smscode: smscode,
-      });
-      console.log('checkCode doTelLogin res:', res)
 
-      let code = 400, data = {}, message = '登录失败:' + res.err_msg
-      if (res.err_code == 0) {
-        code = 200
-        const cookie =
-          'pt_key=' +
-          res.data.pt_key +
-          ';pt_pin=' +
-          encodeURIComponent(res.data.pt_pin) +
-          ';';
-        console.log('cookie', cookie);
-        data = { ck: cookie }
-      }
-
-      ctx.body = {
-        code: code,
-        data: data,
-        message: message
-      }
+      const path = projectRootDir + '/api/jdck/checkCode.js'
+      var res = await executeScript(path, [
+        `smscode=${smscode}`,
+        `phone=${user.mobile ?? ''}`,
+        `gsalt=${user.gsalt ?? ''}`,
+        `guid=${user.guid ?? ''}`,
+        `lsid=${user.lsid ?? ''}`
+      ]);
+      res = JSON.parse(res)
+      console.log('checkCode res:', res)
+      ctx.body = res
     } catch (error) {
       console.log(error);
       ctx.body = {
