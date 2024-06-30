@@ -1,5 +1,6 @@
 const { execFile } = require('child_process')
 const { projectRootDir } = require('../util/util')
+const log = require('../../utils/log_util');
 
 /**
  * 执行外部脚本并获取其输出
@@ -37,7 +38,7 @@ class JDCK {
     if (process.env.npm_lifecycle_event == 'dev') {
       this.sendSms = this.mockSendSms
       this.checkCode = this.mockCheckCode
-      console.log('process dev mode')
+      log.info('jdck process dev mode')
       return
     }
 
@@ -49,7 +50,6 @@ class JDCK {
   async _sendSms(ctx, next) {
     await next()
     const phone = ctx.request.query.phone ?? ''
-    console.log('sendSms query.phone:', phone)
 
     // 是否合法手机号正则
     const phoneRegex = /^1[3-9]\d{9}$/;
@@ -58,19 +58,20 @@ class JDCK {
         code: 400,
         message: '手机号格式错误'
       }
-      console.log('sendSms message: 手机号格式错误')
+      log.error('jdck sendSms 手机号格式错误 phone:', phone)
       return
     }
 
     try {
+      log.info('「1」jdck sendSms 手机号:', phone)
       // sendSms接口中的user参数
       const path = projectRootDir + '/api/jdck/sendSms.js'
       var res = await executeScript(path, [`phone=${phone}`]);
       res = JSON.parse(res)
-      console.log('sendSms res:', res)
+      log.info('「2」jdck sendSms  短信发送:', res.code===0 ? '成功' : '失败')
       ctx.body = res
     } catch (error) {
-      console.log(error);
+      log.error('jdck sendSms error:', error)
       ctx.body = {
         code: 400,
         message: '接口异常'
@@ -82,7 +83,6 @@ class JDCK {
   async _checkCode(ctx, next) {
     await next()
     const smscode = ctx.request.query.smscode
-    console.log('checkCode:', smscode)
 
     const regex = /^\d{6}$/;
     if (!regex.test(smscode)) {
@@ -95,7 +95,7 @@ class JDCK {
     try {
       // sendSms接口中的user参数
       const user = ctx.request.body;
-      console.log('checkCode request.body:', user)
+      log.info(`「3」jdck checkCode 手机:${user.mobile ?? ''}, smscode:${smscode}`)
 
       const path = projectRootDir + '/api/jdck/checkCode.js'
       var res = await executeScript(path, [
@@ -106,10 +106,10 @@ class JDCK {
         `lsid=${user.lsid ?? ''}`
       ]);
       res = JSON.parse(res)
-      console.log('checkCode res:', res)
+      log.info('「4」jdck checkCode 短信登录:', res.code===200 ? '成功' : '失败')
       ctx.body = res
     } catch (error) {
-      console.log(error);
+      log.error('jdck sendSms error:', error)
       ctx.body = {
         code: 400,
         message: '接口异常'
@@ -121,7 +121,7 @@ class JDCK {
   async mockSendSms(ctx, next) {
     await next()
     const phone = ctx.request.query.phone ?? ''
-    console.log('mock sendSms query.phone:', phone)
+    log.info('jdck mock sendSms query.phone:', phone)
 
     // 是否合法手机号正则
     const phoneRegex = /^1[3-9]\d{9}$/;
@@ -130,7 +130,7 @@ class JDCK {
         code: 400,
         message: 'mock 手机号格式错误'
       }
-      console.log('mock sendSms message: 手机号格式错误')
+      log.info('jdck mock sendSms message: 手机号格式错误')
       return
     }
 
@@ -156,7 +156,7 @@ class JDCK {
   async mockCheckCode(ctx, next) {
     await next()
     const smscode = ctx.request.query.smscode ?? ''
-    console.log('mock sendSms query.smscode:', smscode)
+    log.info('jdck mock sendSms query.smscode:', smscode)
 
     const regex = /^\d{6}$/;
     if (!regex.test(smscode)) {
@@ -166,7 +166,7 @@ class JDCK {
       }
       return
     }
-    console.log('mock checkCode body:', ctx.request.body)
+    log.info('jdck mock checkCode body:', ctx.request.body)
     const { mobile } = ctx.request.body
     const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {

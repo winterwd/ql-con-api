@@ -3,6 +3,7 @@ const QL = require('./ql.js');
 const ql = new QL()
 const QLToken = require('./ql_token');
 const notify = require('../wxpusher/notify.js');
+const log = require('../../utils/log_util.js');
 
 function findNickname(params = '') {
   // params: nickname@@timestamp@@UID_xxxxx
@@ -28,14 +29,14 @@ class Api {
     this.sendNotify = notify.wxpusherNotify
     this.error = { code: 400, message: '操作失败' }
 
-    console.log('qlapi token = ', this.qlToken)
+    log.info('qlapi token = ', this.qlToken)
   }
 
   // 用户更新 uid
   async updateWxPusherUid(data) {
     const { pt_pin, uid } = data ?? {}
-    console.log('updateWxPusherUid pt_pin = ' + pt_pin + ', uid = ' + uid)
-    const user = await this.getUserJDCK(pt_pin)
+    log.info('updateWxPusherUid pt_pin = ' + pt_pin + ', uid = ' + uid)
+    const user = await this.getUserJDCKByPin(pt_pin)
     if (user) {
       const nickname = findNickname(user.remarks) ?? pt_pin
       // remarks: nickname@@timestamp@@UID_xxxxx
@@ -44,12 +45,17 @@ class Api {
         const token = await this.getToken()
         const res = await ql.updateEnvs(token, user)
         if (res.code == 200) {
+          log.info('updateWxPusherUid 更新成功')
           // 更新成功 发送推送给管理员
-          this.sendNotify('有用户更新 Uid 啦', `亲爱的车主，当前京东车次用户：${nickname}，更新了Uid：${uid}`)
+          this.sendNotify(`用户：${nickname},更新UID啦`, `亲爱的车主，用户：${nickname}，更新了UID：${uid}`)
+        }
+        else {
+          log.error('updateWxPusherUid error = ' + JSON.stringify(res))
         }
         return res
       }
       catch (e) {
+        log.error('updateWxPusherUid error = ' + JSON.stringify(e))
         return this.error
       }
     }
@@ -59,12 +65,12 @@ class Api {
   // 用户修改 JD_COOKIE 备注
   async updateRemarks(data) {
     const { pt_pin, remarks } = data ?? {}
-    console.log('updateRemarks pt_pin = ' + pt_pin + ', remarks = ' + remarks)
-    const user = await this.getUserJDCK(pt_pin)
+    log.info('updateRemarks pt_pin = ' + pt_pin + ', remarks = ' + remarks)
+    const user = await this.getUserJDCKByPin(pt_pin)
     if (user) {
       // remark: nickname@@timestamp@@UID_xxxxx
       const nickname = findNickname(user.remarks)
-      console.log('old nickname = ' + nickname ?? 'null')
+      log.info('updateRemarks old nickname = ' + nickname ?? 'null')
       const uid = findWxPusherUid(user.remarks) ?? ''
       user.remarks = `${remarks}@@${Date.now()}@@${uid}`
       try {
@@ -72,11 +78,16 @@ class Api {
         const res = await ql.updateEnvs(token, user)
 
         if (res.code == 200) {
+          log.info('updateRemarks 更新成功')
           // 更新成功 发送推送给管理员
-          this.sendNotify('有用户更新备注啦', `亲爱的车主，当前京东车次用户：${pt_pin}，将备注“${nickname}”修改为：${remarks}`)
+          this.sendNotify(`用户：${nickname},更新备注啦`, `亲爱的车主，用户：${pt_pin}，将备注“${nickname}”修改为：${remarks}`)
+        }
+        else {
+          log.error('updateRemarks error = ' + JSON.stringify(res))
         }
         return res
       } catch (e) {
+        log.error('updateRemarks error = ' + JSON.stringify(e))
         return this.error
       }
     }
@@ -88,10 +99,10 @@ class Api {
   // 用户提交 CK
   async submitCK(ck = '') {
     // ck: pt_key=xxx;pt_pin=xxx;
-    console.log('submitCK ck = ' + ck)
+    log.info('submitCK ck = ' + ck)
     const arr = ck.split(';')
     if (arr.length < 2) {
-      console.log('submitCK arr.length = ' + arr.length)
+      log.error('submitCK arr.length = ' + arr.length)
       return this.error
     }
 
@@ -99,12 +110,12 @@ class Api {
     const pt_key = arr[0].split('pt_key=')[1] ?? ''
     const pt_pin = arr[1].split('pt_pin=')[1] ?? ''
     if (pt_key === '' || pt_pin === '') {
-      console.log('submitCK pt_key = ' + pt_key, 'pt_pin = ' + pt_pin)
+      log.info('submitCK pt_key = ' + pt_key, 'pt_pin = ' + pt_pin)
       return this.error
     }
 
     const user_value = `pt_key=${pt_key};pt_pin=${pt_pin};`
-    const user = await this.getUserJDCK(pt_pin)
+    const user = await this.getUserJDCKByPin(pt_pin)
     if (user) {
       user.value = user_value
       try {
@@ -112,17 +123,24 @@ class Api {
         let res = await ql.updateEnvs(token, user)
 
         if (res.code == 200) {
+          log.info('submitCK 更新成功')
           // 更新成功 发送推送给管理员
           const nickname = findNickname(user.remarks)
-          this.sendNotify('有老用户更新CK啦', `亲爱的车主，当前京东车次有老用户: “${nickname}”更新 CK 了`)
+          this.sendNotify(`用户：${nickname},更新CK啦`, `亲爱的车主，用户: “${nickname}”更新 CK 了`)
 
           if (String(user.status) === '1') {
+            log.info('submitCK status 当前未启用，开始启用...')
             // 若status状态为1，表示被禁用，需启用此变量
             res = await ql.enableEnvs(token, [user.id])
+            log.info('submitCK status 启用 ' + res.code == 200 ? '成功' : '失败')
           }
+        }
+        else {
+          log.error('submitCK error = ' + JSON.stringify(res))
         }
         return res
       } catch (e) {
+        log.error('submitCK error = ' + JSON.stringify(e))
         return this.error
       }
     }
@@ -134,13 +152,19 @@ class Api {
           remarks: pt_pin,
           value: user_value,
         }
+        log.info('submitCK 新用户开始提交CK...')
         const token = await this.getToken()
         const res = await ql.insertEnvs(token, jdCKObj)
         if (res.code == 200) {
-          this.sendNotify('有新用户上车啦', `亲爱的车主，当前京东车次有新用户: “${pt_pin}” 提交 CK 上车了`)
+          log.info('submitCK 新用户提交成功')
+          this.sendNotify(`有新用户"${pt_pin}"上车啦`, `亲爱的车主，当前京东车次有新用户: “${pt_pin}” 提交 CK 上车了`)
+        }
+        else {
+          log.error('submitCK 新用户提交 error = ' + JSON.stringify(res))
         }
         return res
       } catch (e) {
+        log.error('submitCK error = ' + JSON.stringify(e))
         return this.error
       }
     }
@@ -148,7 +172,7 @@ class Api {
 
   async parseAndSubmitCK(data = '') {
     const { ck } = this.parsejdck(data)
-    console.log('parseAndSubmitCK = ' + ck)
+    log.info('parseAndSubmitCK = ' + ck)
     if (ck) {
       return this.submitCK(ck)
     }
@@ -157,7 +181,7 @@ class Api {
 
   // 解析 文本中的cookie
   parsejdck(body = {}) {
-    console.log('parsejdck body = ' + body)
+    log.info('parsejdck body = ' + body)
     const ck = body.ck ?? ''
     // ck 中是否包含 pt_key 和 pt_pin
     if (ck.includes('pt_key') && ck.includes('pt_pin')) {
@@ -177,32 +201,37 @@ class Api {
 
       // 是否存在 pt_key 和 pt_pin
       if (pt_key && pt_pin) {
-        console.log(`解析京东ck完成，pt_key=${pt_key}, pt_pin=${pt_pin}`);
+        log.info(`解析京东ck完成，pt_key=${pt_key}, pt_pin=${pt_pin}`);
         const ck = `pt_key=${pt_key};pt_pin=${pt_pin};`
         return { pt_key, pt_pin, ck }
       } else {
-        console.log(`解析京东ck 失败`);
+        log.error(`解析京东ck 失败`);
         return {}
       }
     } else {
-      console.log('parsejdck body need to contain pt_key and pt_pin');
+      log.error('parsejdck body need to contain pt_key and pt_pin');
       return {}
     }
   }
 
   // 获取指定用户的 JD_COOKIE 环境变量
-  async getUserJDCK(pt_pin = '') {
-    if (pt_pin === '') {
-      return undefined
-    }
-    const cks = await this.getJDCKEnvs()
-    for (let i = 0; i < cks.length; i++) {
-      const ck = cks[i]
-      if (ck.value.includes(pt_pin)) {
-        return ck
+  async getUserJDCKByPin(pt_pin = '') {
+    log.info('getUserJDCKByPin pt_pin = ' + pt_pin)
+
+    var obj = undefined
+    if (pt_pin != '') {
+      const cks = await this.getJDCKEnvs()
+      for (let i = 0; i < cks.length; i++) {
+        const ck = cks[i]
+        if (ck.value.includes(pt_pin)) {
+          obj = ck
+          break
+        }
       }
     }
-    return undefined
+
+    log.info('getUserJDCKByPin user = ' + obj ? JSON.stringify(obj) : '没有找到该用户的 JD_COOKIE 环境变量')
+    return obj
   }
 
   // 获取 ql CK 环境变量
@@ -215,7 +244,7 @@ class Api {
       }
       return []
     } catch (result) {
-      console.log('getJDCKEnvs error = ' + JSON.stringify(result))
+      log.error('getJDCKEnvs error = ' + JSON.stringify(result))
       return []
     }
   }
@@ -223,30 +252,33 @@ class Api {
   // 获取 ql token
   async getToken() {
     if (!this.qlToken.isExpired()) {
-      console.log('qlapi getQLToken token is valid')
+      log.info('qlapi getQLToken token is valid')
       return this.qlToken.token
     }
-    console.log('qlapi getQLToken token isExpired')
+
+    log.info('qlapi getQLToken token isExpired, get new token...')
     try {
       const { token, expiration } = await this.loginQL()
+      log.info('getQLToken token = ' + token + ' expiration = ' + expiration)
       if (token && expiration) {
         this.qlToken.updateToken({ token, expiration })
         return token
       }
       throw new Error('获取 ql token 失败')
     } catch (e) {
+      log.error('getQLToken error = ' + JSON.stringify(e))
       return ''
     }
   }
 
   async loginQL() {
-    console.log('start loginQL')
+    log.info('start loginQL')
     try {
       const { data } = await ql.login()
-      console.log('loginQL data = ' + JSON.stringify(data))
+      log.info('loginQL data = ' + JSON.stringify(data))
       return { token: data.token ?? '', expiration: data.expiration ?? 0 }
     } catch (error) {
-      console.log('start loginQL error = ' + JSON.stringify(error))
+      log.error('start loginQL error = ' + JSON.stringify(error))
       return this.error
     }
   }
@@ -267,7 +299,7 @@ class QLAPI {
   async getJDCK(ctx, next) {
     await next()
     const pt_pin = ctx.request.query.pt_pin
-    const user = await api.getUserJDCK(pt_pin)
+    const user = await api.getUserJDCKByPin(pt_pin)
 
     if (user) {
       const remarks = findNickname(user.remarks)
@@ -282,7 +314,7 @@ class QLAPI {
       ctx.body = { code: 200, message: '获取成功', data }
     }
     else {
-      ctx.body = {code: 400, message: '获取失败'}
+      ctx.body = { code: 400, message: '获取失败' }
     }
   }
 
@@ -294,7 +326,7 @@ class QLAPI {
 
   async _submitCK(ck) {
     if (process.env.npm_lifecycle_event == 'dev') {
-      return {code:200, message: 'mock 成功'}
+      return { code: 200, message: 'mock 成功' }
     }
     return await api.submitCK(ck)
   }
@@ -313,6 +345,11 @@ class QLAPI {
 
   async _updateWxPusherUid(data) {
     return await api.updateWxPusherUid(data)
+  }
+
+  async _wxpusherSendUpCmd(data = {}) {
+    const { content, uid } = data
+    console.log(`收到 uid:${uid} 发送的指令: ${content}`);
   }
 }
 
