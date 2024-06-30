@@ -47,7 +47,7 @@ function wxpusherNotify(text, desp) {
         try {
           if (err) {
             console.log("WxPusher 发送通知调用 API 失败！！\n");
-            console.log(err);
+            console.log("WxPusher Error: ", err);
           } else {
             data = JSON.parse(data);
             if (data.code === 1000) {
@@ -55,7 +55,7 @@ function wxpusherNotify(text, desp) {
             }
           }
         } catch (e) {
-          console.log(e);
+          console.log("WxPusher Error: ", e);
         }
         finally {
           resolve(data);
@@ -65,6 +65,10 @@ function wxpusherNotify(text, desp) {
       resolve();
     }
   });
+}
+
+function wxpusherTextNotify(text, desp) {
+  return wxpusherNotify(text, desp);
 }
 
 module.exports = { wxpusherNotify }
