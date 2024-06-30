@@ -19,9 +19,8 @@ const wxpusher = new WxPusher()
 router.post('/wxpusher', async (ctx, next) => {
   await next()
   const body = ctx.request.body ?? {}
-  log.info('/wxpusher request body:' + JSON.stringify(body))
+  log.info('wxpusher request body:' + JSON.stringify(body))
   var res = await wxpusher.callback(body)
-  log.info('/wxpusher callback res:' + JSON.stringify(res))
 
   const { data, code = 400, message = '未知错误' } = res
   ctx.status = 200
@@ -34,7 +33,8 @@ router.post('/wxpusher', async (ctx, next) => {
       await qlApi._updateWxPusherUid(data)
     }
     else if (action == 'send_up_cmd') {
-      await qlApi._sendUpCmd(data)
+      // await qlApi._sendUpCmd(data)
+      log.info('wxpusher send_up_cmd content:' + data.content)
     }
   }
 })
