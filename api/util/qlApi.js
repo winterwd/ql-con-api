@@ -28,8 +28,6 @@ class Api {
     this.qlToken = QLToken.getToken();
     this.sendNotify = notify.wxpusherNotify
     this.error = { code: 400, message: '操作失败' }
-
-    log.info('qlapi token = ', this.qlToken)
   }
 
   // 用户更新 uid
@@ -70,7 +68,7 @@ class Api {
     if (user) {
       // remark: nickname@@timestamp@@UID_xxxxx
       const nickname = findNickname(user.remarks)
-      log.info('updateRemarks old nickname = ' + nickname ?? 'null')
+      log.info('updateRemarks old nickname = ' + (nickname ?? 'null'))
       const uid = findWxPusherUid(user.remarks) ?? ''
       user.remarks = `${remarks}@@${Date.now()}@@${uid}`
       try {
@@ -132,7 +130,7 @@ class Api {
             log.info('submitCK status 当前未启用，开始启用...')
             // 若status状态为1，表示被禁用，需启用此变量
             res = await ql.enableEnvs(token, [user.id])
-            log.info('submitCK status 启用 ' + res.code == 200 ? '成功' : '失败')
+            log.info('submitCK status 启用 ' + (res.code == 200 ? '成功' : '失败'))
           }
         }
         else {
@@ -181,7 +179,7 @@ class Api {
 
   // 解析 文本中的cookie
   parsejdck(body = {}) {
-    log.info('parsejdck body = ' + body)
+    log.info('parsejdck body = ' + JSON.stringify(body));
     const ck = body.ck ?? ''
     // ck 中是否包含 pt_key 和 pt_pin
     if (ck.includes('pt_key') && ck.includes('pt_pin')) {
@@ -230,7 +228,7 @@ class Api {
       }
     }
 
-    log.info('getUserJDCKByPin user = ' + obj ? JSON.stringify(obj) : '没有找到该用户的 JD_COOKIE 环境变量')
+    log.info('getUserJDCKByPin user = ' + (obj ? JSON.stringify(obj) : '没有找到该用户的 JD_COOKIE 环境变量'))
     return obj
   }
 
@@ -259,7 +257,7 @@ class Api {
     log.info('qlapi getQLToken token isExpired, get new token...')
     try {
       const { token, expiration } = await this.loginQL()
-      log.info('getQLToken token = ' + token + ' expiration = ' + expiration)
+      log.info('getQLToken token = ' + token + ', expiration = ' + expiration)
       if (token && expiration) {
         this.qlToken.updateToken({ token, expiration })
         return token

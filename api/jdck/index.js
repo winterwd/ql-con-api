@@ -63,12 +63,12 @@ class JDCK {
     }
 
     try {
-      log.info('「1」jdck sendSms 手机号:', phone)
+      log.info('「1」jdck sendSms 手机号:' + phone)
       // sendSms接口中的user参数
       const path = projectRootDir + '/api/jdck/sendSms.js'
       var res = await executeScript(path, [`phone=${phone}`]);
       res = JSON.parse(res)
-      log.info('「2」jdck sendSms  短信发送:', res.code===0 ? '成功' : '失败')
+      log.info('「2」jdck sendSms  短信发送:' + (res.code === 0 ? '成功' : '失败'))
       ctx.body = res
     } catch (error) {
       log.error('jdck sendSms error:', error)
@@ -106,10 +106,11 @@ class JDCK {
         `lsid=${user.lsid ?? ''}`
       ]);
       res = JSON.parse(res)
-      log.info('「4」jdck checkCode 短信登录:', res.code===200 ? '成功' : '失败')
+      log.info('「4」jdck checkCode 短信登录:' + (res.code === 200 ? '成功' : '失败'))
+      console.log('checkCode res:', res)
       ctx.body = res
     } catch (error) {
-      log.error('jdck sendSms error:', error)
+      log.error('jdck sendSms error:' + JSON.stringify(error))
       ctx.body = {
         code: 400,
         message: '接口异常'
@@ -121,7 +122,7 @@ class JDCK {
   async mockSendSms(ctx, next) {
     await next()
     const phone = ctx.request.query.phone ?? ''
-    log.info('jdck mock sendSms query.phone:', phone)
+    log.info('jdck mock sendSms query.phone:' + phone)
 
     // 是否合法手机号正则
     const phoneRegex = /^1[3-9]\d{9}$/;
@@ -156,7 +157,7 @@ class JDCK {
   async mockCheckCode(ctx, next) {
     await next()
     const smscode = ctx.request.query.smscode ?? ''
-    log.info('jdck mock sendSms query.smscode:', smscode)
+    log.info('jdck mock sendSms query.smscode:' + smscode)
 
     const regex = /^\d{6}$/;
     if (!regex.test(smscode)) {
@@ -166,7 +167,7 @@ class JDCK {
       }
       return
     }
-    log.info('jdck mock checkCode body:', ctx.request.body)
+    log.info('jdck mock checkCode body:' + JSON.stringify(ctx.request.body))
     const { mobile } = ctx.request.body
     const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
     const fetchData = async () => {

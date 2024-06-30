@@ -52,7 +52,6 @@ function login() {
         'client_secret': client_secret
       }
     }, function (error, response, body) {
-      log.info('loginUrl result = ' + body)
       if (error !== null) {
         reject(error)
         return
