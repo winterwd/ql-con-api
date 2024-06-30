@@ -28,19 +28,18 @@ async function fetchWxPusherQRCode(extra = '') {
   }
 
   return new Promise((resolve, reject) => {
-    request.post(options,
+    request(options,
       function (error, response, body) {
         if (error !== null) {
           reject({ code: 400, message: '二维码获取失败' })
           return
         }
 
-        console.log('二维码获取 result = ' + body)
         const result = JSON.parse(body)
         if (result.code == 1000) {
           resolve({ code: 200, data: result.data, message: '二维码获取成功' })
         } else {
-          reject({ code: 400, message: body.msg })
+          reject({ code: 400, message: result.msg })
         }
       })
   })
@@ -53,10 +52,8 @@ class WxPusher {
   /**
    * 用户扫码关注后，回调，通过 extra(pt_pin) 来更新 uid
    */
-  async callback(ctx, next) {
-    await next()
-
-    // const callback = {
+  async callback(body = {}) {
+    // const body = {
     //   "action": "app_subscribe",//动作，app_subscribe 表示用户关注应用回调，后期可能会添加其他动作，请做好兼容。
     //   "data": {
     //     "appId": 123,//创建的应用ID
@@ -71,24 +68,54 @@ class WxPusher {
     //   }
     // }
 
-    console.log('callback body = ' + JSON.stringify(ctx.request.body))
-    const data = ctx.request.body.data ?? {}
-    const { uid, extra } = data
+    // const body = {
+    //   "action": "send_up_cmd",//动作，send_up_cmd 表示上行消息回调，后期可能会添加其他动作，请做好兼容。
+    //   "data": {
+    //     "uid": "UID_xxx",//用户uid
+    //     "appId": 97, //应用id
+    //     "appName": "WxPusher演示",//应用名称
+    //     "time": 1603002697386,//发生时间
+    //     "content": "内容" //用户发送的内容
+    //   }
+    // }
+
+    const { data, action } = body
+    const { uid } = data
 
     if (uid == undefined || uid == '') {
       // 没有 uid
-      ctx.status = 400
-      return ctx.body = { code: 400, message: '没有 uid' }
+      return { code: 400, message: '没有 uid' }
     }
 
-    ctx.status = 200
+    if (action == 'app_subscribe') {
+      // 用户关注事件
+      return this._app_subscribe(data)
+    }
+    else if (action == 'send_up_cmd') {
+      // 上行消息事件
+      return this._send_up_cmd(data)
+    }
+    return { code: 400, message: '没有找到相应的 action 回调' }
+  }
+
+  _app_subscribe(data = {}) {
+    const { uid, extra } = data
     // 没有 extra 不做更新
     if (extra == undefined || extra == '') {
-      ctx.body = { code: 400, message: '没有 extra' }
-      return
+      return { code: 400, message: '没有 extra' }
     }
 
-    ctx.body = { code: 200, message: '收到关注事件', data: { pt_pin: extra, uid: uid } }
+    return { code: 200, message: '收到关注事件', data: { pt_pin: extra, uid: uid, action: 'app_subscribe' } }
+  }
+
+  _send_up_cmd(data = {}) {
+    const { uid, content } = data
+    // 没有 content
+    if (content == undefined || content == '') {
+      return { code: 400, message: '没有 content' }
+    }
+
+    return { code: 200, message: '收到指令', data: { content: content, uid: uid, action: 'send_up_cmd' } }
   }
 
   /**
@@ -96,13 +123,13 @@ class WxPusher {
    * @param {string} [extra=''] 对应青龙 CK 中的 pt_pin
    * @return wxpusher 二维码
    */
-  async getQRCode(ctx, next) {
-    await next()
-    const extra = ctx.request.query.extra
-    console.log('getQRCode extra = ' + extra)
-
-    const res = await fetchWxPusherQRCode(extra)
-    return ctx.body = res
+  async getQRCode(extra = '') {
+    try {
+      const res = await fetchWxPusherQRCode(extra)
+      return res
+    } catch (error) {
+      return { code: 400, message: JSON.stringify(error) }
+    }
   }
 }
 

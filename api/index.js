@@ -3,6 +3,7 @@ const RateLimit = require('koa2-ratelimit').RateLimit;
 
 const JDCK = require('./jdck/index.js')
 const WxPusher = require('./wxpusher/index.js')
+const log = require('../utils/log_util');
 
 /** 路由模块配置  (前缀) */
 router.prefix('/api')
@@ -14,21 +15,28 @@ const wxpusher = new WxPusher()
  * wxpusher 回调地址 
  * 文档地址 https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
  */
-// router.post('/wxpusher/callback', wxpusher.callback)
-router.post('/wxpusher/callback', async (ctx, next) => {
-  await wxpusher.callback(ctx, next)
-  let res = ctx.body
-  console.log('/wxpusher/callback res:', res)
-  const { data, code } = res
-  if (code === 200) {
-    // 成功收到用户关注回调事件
-    res = await qlApi._updateWxPusherUid(data)
-    console.log('updateWxPusherUid res:', res)
-    if (res.code === 200) {
-      res.data = {}
+// router.post('/wxpusher', wxpusher.callback)
+router.post('/wxpusher', async (ctx, next) => {
+  await next()
+  const body = ctx.request.body ?? {}
+  log.info('/wxpusher request body:' + JSON.stringify(body))
+  var res = await wxpusher.callback(body)
+  log.info('/wxpusher callback res:' + JSON.stringify(res))
+
+  const { data, code = 400, message = '未知错误' } = res
+  ctx.status = 200
+  ctx.body = { code, message }
+
+  if (code == 200) {
+    // 成功收到用户回调事件
+    const { action } = data ?? {}
+    if (action == 'app_subscribe') {
+      await qlApi._updateWxPusherUid(data)
+    }
+    else if (action == 'send_up_cmd') {
+      await qlApi._sendUpCmd(data)
     }
   }
-  ctx.body = res;
 })
 
 /**
@@ -36,7 +44,15 @@ router.post('/wxpusher/callback', async (ctx, next) => {
  * @api {get} /wxpusher/qrcode 获取JD_COOKIE
  * @param {string} extra (pt_pin) 自定义字段
  */
-router.get('/wxpusher/qrcode', wxpusher.getQRCode)
+router.get('/wxpusher/qrcode', async (ctx, next) => {
+  await next()
+  const extra = ctx.request.query.extra
+  log.info('wxpusher getQRCode extra = ' + extra)
+
+  const res = await wxpusher.getQRCode(extra)
+  log.info('wxpusher getQRCode res ' + (res.code == 200 ? 'success' : 'fail'))
+  return ctx.body = res
+})
 
 // 新的 api
 const QLAPI = require('./util/qlApi')
@@ -98,12 +114,10 @@ router.get('/jd/sendSms', apiLimiter, jdck.sendSms);
 router.post('/jd/checkCode', apiLimiter, async (ctx, next) => {
   await jdck.checkCode(ctx, next);
   let res = ctx.body
-  console.log('/jd/checkCode checkCode res:', res)
   const { data, code } = res
   if (code === 200) {
     // jd 短信登录成功后提交CK
     const ckRes = await qlApi._submitCK(data.ck)
-    console.log('/jd/checkCode submitCK res:', ckRes)
     if (ckRes.code !== 200) {
       ckRes.message = "提交失败, 请点击下方'重新提交'"
     }
