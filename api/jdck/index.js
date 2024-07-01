@@ -68,7 +68,7 @@ class JDCK {
       const path = projectRootDir + '/api/jdck/sendSms.js'
       var res = await executeScript(path, [`phone=${phone}`]);
       res = JSON.parse(res)
-      log.info('「2」jdck sendSms  短信发送:' + (res.code === 0 ? '成功' : '失败'))
+      log.info('「2」jdck sendSms 短信发送:' + res.message)
       ctx.body = res
     } catch (error) {
       log.error('jdck sendSms error:', error)
@@ -106,7 +106,7 @@ class JDCK {
         `lsid=${user.lsid ?? ''}`
       ]);
       res = JSON.parse(res)
-      log.info('「4」jdck checkCode 短信登录:' + (res.code === 200 ? '成功' : '失败'))
+      log.info('「4」jdck checkCode 短信登录:' + res.message)
       console.log('checkCode res:', res)
       ctx.body = res
     } catch (error) {
