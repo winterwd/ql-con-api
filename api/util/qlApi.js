@@ -45,7 +45,7 @@ class Api {
         if (res.code == 200) {
           log.info('updateWxPusherUid 更新成功')
           // 更新成功 发送推送给管理员
-          this.sendNotify(`用户：${nickname},更新UID啦`, `亲爱的车主，用户：${nickname}，更新了UID：${uid}`)
+          this.sendNotify(`用户:${nickname},更新UID啦`, `亲爱的车主，用户：${nickname}，更新了UID：${uid}`)
         }
         else {
           log.error('updateWxPusherUid error = ' + JSON.stringify(res))
@@ -78,7 +78,7 @@ class Api {
         if (res.code == 200) {
           log.info('updateRemarks 更新成功')
           // 更新成功 发送推送给管理员
-          this.sendNotify(`用户：${nickname},更新备注啦`, `亲爱的车主，用户：${pt_pin}，将备注“${nickname}”修改为：${remarks}`)
+          this.sendNotify(`用户:${nickname},更新备注啦`, `亲爱的车主，用户：${pt_pin}，将备注“${nickname}”修改为：${remarks}`)
         }
         else {
           log.error('updateRemarks error = ' + JSON.stringify(res))
@@ -124,7 +124,7 @@ class Api {
           log.info('submitCK 更新成功')
           // 更新成功 发送推送给管理员
           const nickname = findNickname(user.remarks)
-          this.sendNotify(`用户：${nickname},更新CK啦`, `亲爱的车主，用户: “${nickname}”更新 CK 了`)
+          this.sendNotify(`用户:${nickname},更新CK啦`, `亲爱的车主，用户: “${nickname}” 更新 CK 了`)
 
           if (String(user.status) === '1') {
             log.info('submitCK status 当前未启用，开始启用...')
