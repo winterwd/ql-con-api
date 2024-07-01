@@ -1,8 +1,11 @@
+/** 项目启动端口 */
+const host = 'http://127.0.0.1', port = 8864
 
 const Koa = require('koa')
 const app = new Koa()
 const logger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
+const proxy = require('koa2-proxy-middleware')
 
 const ApiRouter = require('./api/index')
 const ViewsRouter = require('./views/router/index')
@@ -28,6 +31,17 @@ app.use(async (ctx, next) => {
   ctx.set('Content-Type', 'application/json')
   await next()
 })
+
+// 配置代理
+app.use(proxy({
+  targets: {
+    '/ql/v1/update/jdck': {
+      target: `${host}:${port}/api/ql/parse_jdck_set`,
+      changeOrigin: true,
+      pathRewrite: { '^/ql/v1/update/jdck': '' }
+    }
+  }
+}))
 
 /** 请求需要加上 bodyParser */
 app.use(bodyParser())
@@ -59,9 +73,6 @@ app.use(ViewsRouter.routes()).use(ViewsRouter.allowedMethods())
 
 /** 日志 */
 app.use(logger())
-
-/** 项目启动端口 */
-const host = 'http://127.0.0.1', port = 8864
 
 /** 启动服务、监听端口 */
 app.listen(port, () => {
