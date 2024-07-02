@@ -1,0 +1,39 @@
+
+# 站点设置
+site:
+  # 网站名称
+  site_name: 网站名称
+
+# 青龙配置
+qinglong:
+  # 应用ID
+  client_id:
+  # 应用秘钥
+  client_secret:
+  # 青龙地址
+  ql_addr: http://127.0.0.1:5700
+
+# 微信推送配置
+wxpusher:
+  # wxpusher appToken
+  appToken: 
+  # wxpusher 管理员uid, 用于接收车友消息
+  uid: 
+  # wxpusher 回调地址 固定格式，只需修改 xx.api.com
+  callback: http://xx.api.com/api/wxpusher
+
+# 青龙 task 指令配置 task <file_path> desi <env_name> <account_number>
+# task <file_path> desi JD_COOKIE <account_number>
+# 完整指令格式：task shufflewzc_faker3_main/jd_XinFarm_water.js desi JD_COOKIE 2
+wx_task_bot:
+  # 指令列表 
+  cmds: 
+  -
+    # 新农场自动浇水
+    name: 浇水
+    path: shufflewzc_faker3_main/jd_XinFarm_water.js
+
+  - 
+    # 东资产统计
+    name: 资产
+    path: shufflewzc_faker3_main/jd_bean_change.js
