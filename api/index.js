@@ -16,6 +16,7 @@ const wxpusher = new WxPusher()
  * 文档地址 https://wxpusher.zjiecode.com/docs/#/?id=subscribe-callback
  */
 // router.post('/wxpusher', wxpusher.callback)
+const wxpusher_bot = require('./wxpusher_bot/index.js')
 router.post('/wxpusher', async (ctx, next) => {
   await next()
   const body = ctx.request.body ?? {}
@@ -30,11 +31,11 @@ router.post('/wxpusher', async (ctx, next) => {
     // 成功收到用户回调事件
     const { action } = data ?? {}
     if (action == 'app_subscribe') {
-      await qlApi._updateWxPusherUid(data)
+      qlApi._updateWxPusherUid(data)
     }
     else if (action == 'send_up_cmd') {
-      // await qlApi._sendUpCmd(data)
       log.info('wxpusher send_up_cmd content:' + data.content)
+      wxpusher_bot.bot(data)
     }
   }
 })
