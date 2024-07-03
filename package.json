@@ -1,6 +1,6 @@
 {
-  "name": "ql-con-api",
-  "version": "1.0.0",
+  "name": "jdck",
+  "version": "1.0",
   "description": "qinglong data update",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "author": "",
+  "author": "aka+",
   "license": "MIT",
   "dependencies": {
     "child_process": "^1.0.2",
