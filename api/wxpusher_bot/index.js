@@ -40,6 +40,7 @@ const isGuideCMD = (content) => {
   return wxpusher_bot.guide.name == content
 }
 
+const bot_cmd = require('./bot_cmd')
 exports.bot = async (data = {}) => {
   let { content, uid } = data
   const isAdmin = (adminUID == uid)
@@ -49,13 +50,21 @@ exports.bot = async (data = {}) => {
     desp = guideTip(isAdmin)
   }
   else {
-    var cmd = allCMD().find(cmd => cmd.name == content)
+    var cmd = wxpusher_bot.internal.find(cmd => content.includes(cmd.name))
     if (cmd) {
       text = `指令：${cmd.name} 已执行`
+      bot_cmd.internal(cmd, uid)
     }
     else {
-      text = '未知指令：' + content
-      desp += guideTip(isAdmin)
+      cmd = wxpusher_bot.custom.find(cmd => content.includes(cmd.name))
+      if (cmd) {
+        text = `指令：${cmd.name} 已执行`
+        bot_cmd.custom(cmd, uid)
+      }
+      else {
+        text = '未知指令：' + content
+        desp += guideTip(isAdmin)
+      }
     }
   }
   desp += tail

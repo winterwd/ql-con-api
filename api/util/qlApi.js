@@ -5,9 +5,50 @@ const QLToken = require('./ql_token');
 const notify = require('../wxpusher/notify.js');
 const log = require('../../utils/log_util.js');
 
+function findPt_pin(params = '') {
+  // params: pt_key=xxx;pt_pin=xxx
+  const arr = params.split(';')
+  arr.forEach(item => {
+    if (item.includes('pt_pin=')) {
+      return item.split('pt_pin=')[1]
+    }
+  });
+  return ''
+}
+
 function findNickname(params = '') {
   // params: nickname@@timestamp@@UID_xxxxx
   return params.split('@@')[0]
+}
+
+function findPhone(params = '') {
+  // params: nickname@@timestamp@@UID_xxxxx@@phone_xxx
+
+  let phone = undefined
+  const arr = params.split('@@')
+  arr.forEach(item => {
+    if (item.startsWith('phone_')) {
+      phone = item.split('phone_')[1]
+    }
+  });
+
+  return phone
+}
+
+function parseJDCKRemarks(params) {
+  // params: nickname@@timestamp@@UID_xxxxx@@phone_xxx
+  const arr = params.split('@@')
+  let nickname = arr[0] ?? '', uid = '', phone = ''
+  arr.forEach(item => {
+    if (item.startsWith('phone_')) {
+      phone = item.split('phone_')[1]
+    }
+    else if (item.startsWith('UID_')) {
+      uid = item.split('UID_')[1]
+    }
+  });
+
+  return { uid, phone, nickname }
 }
 
 function findWxPusherUid(params = '') {
@@ -348,6 +389,22 @@ class QLAPI {
   async _wxpusherSendUpCmd(data = {}) {
     const { content, uid } = data
     console.log(`收到 uid:${uid} 发送的指令: ${content}`);
+  }
+
+  static async _getJDCKUser() {
+    const cks = await api.getJDCKEnvs()
+    return cks.map(item => {
+      const pt_pin = findPt_pin(item.value)
+      const { uid, phone, nickname: remarks } = parseJDCKRemarks(item.remarks)
+      return {
+        id: item.id,
+        pt_pin,
+        remarks,
+        phone,
+        uid: uid ?? '',
+        status: item.status
+      }
+    })
   }
 }
 
