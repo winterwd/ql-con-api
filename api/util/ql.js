@@ -1,10 +1,11 @@
 const request = require('request');
-const qlConfig = require('./config');
+const { qinglong } = require('../../utils/config');
 const log = require('../../utils/log_util');
 
-let ql_addr = qlConfig.QL_ADDR
-let client_id = qlConfig.QL_CLIENT_ID
-let client_secret = qlConfig.QL_CLIENT_SECRET
+let ql_addr = qinglong.ql_addr ?? "http://127.0.0.1:5700"
+let client_id = qinglong.client_id ?? ""
+let client_secret = qinglong.client_secret ?? ""
+let QL_VALID = qinglong.client_id && qinglong.client_secret
 
 /**
  * 判断字符串是否为空
@@ -35,7 +36,7 @@ function login() {
 
   let code = 400
 
-  if (!qlConfig.QL_VALID) {
+  if (!QL_VALID) {
     return { code, message: ' 请检查client_id 和 请检查client_secret' }
   }
 

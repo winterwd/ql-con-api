@@ -1,7 +1,7 @@
-const { projectRootDir } = require('./util')
 const fs = require('fs');
+const rootDir = require('../../utils/rootDir')
 const staticPath = '/data/ql_token.json'
-const TokenJsonPath = projectRootDir + staticPath
+const TokenJsonPath = rootDir + staticPath
 
 class QLToken {
   constructor(tokenData) {
@@ -38,7 +38,7 @@ class QLToken {
         fs.writeFileSync(filePath, '{}');
       }
       let text = fs.readFileSync(filePath, 'utf-8');
-      console.log('fromFile text = ', text)
+      console.log('ql_token fromFile text = ', text)
       if (!text) {
         text = '{}';
       }

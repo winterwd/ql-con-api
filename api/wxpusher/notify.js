@@ -1,5 +1,5 @@
 const request = require('request');
-const config = require('../util/config');
+const { wxpusher } = require('../../utils/config');
 
 let WP_APP_TOKEN = "";
 let WP_TOPICIDS = "";
@@ -8,8 +8,8 @@ let WP_URL = "";
 let timeout = 15000;
 
 // 读取配置文件
-WP_APP_TOKEN = config.WXPUSHER_TOKEN;
-WP_UIDS = config.WXPUSHER_UID;
+WP_APP_TOKEN = wxpusher.appToken;
+WP_UIDS = wxpusher.uid;
 
 function wxpusherNotify(text, desp) {
   return new Promise((resolve) => {

@@ -19,6 +19,4 @@ function findProjectRootDir(currentDir) {
 
 const projectRootDir = findProjectRootDir();
 console.log('projectRootDir:', projectRootDir);
-module.exports = {
-  projectRootDir
-}
+module.exports = projectRootDir

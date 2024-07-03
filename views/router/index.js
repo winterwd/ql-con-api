@@ -1,14 +1,13 @@
 // router/index.js
 const Router = require('koa-router')
-const Config = require('../../api/util/config');
+const { site } = require('../../utils/config');
 
-const title = Config.SITE_NAME ?? "薅豆车"
+const title = site.site_name ?? "薅豆车"
 
 // 首页
 const home = new Router()
 
 async function homeView(ctx) {
-  console.log((new Date()).toLocaleString() + '--- start homeView')
   await ctx.render('home', { title })
 }
 

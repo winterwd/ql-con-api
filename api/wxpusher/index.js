@@ -1,5 +1,5 @@
 const request = require('request');
-const Config = require('../util/config');
+const { wxpusher } = require('../../utils/config');
 
 /**
  * 获取二维码
@@ -14,7 +14,7 @@ async function fetchWxPusherQRCode(extra = '') {
 
   // 二维码请求地址
   const url = 'https://wxpusher.zjiecode.com/api/fun/create/qrcode'
-  const appToken = Config.WXPUSHER_TOKEN
+  const appToken = wxpusher.appToken
   var options = {
     'method': 'POST',
     'url': url,

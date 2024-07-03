@@ -1,6 +1,6 @@
 const { execFile } = require('child_process')
-const { projectRootDir } = require('../util/util')
-const log = require('../../utils/log_util');
+const rootDir = require('../../utils/rootDir')
+const log = require('../../utils/log_util')
 
 /**
  * 执行外部脚本并获取其输出
@@ -65,7 +65,7 @@ class JDCK {
     try {
       log.info('「1」jdck sendSms 手机号:' + phone)
       // sendSms接口中的user参数
-      const path = projectRootDir + '/api/jdck/sendSms.js'
+      const path = rootDir + '/api/jdck/sendSms.js'
       var res = await executeScript(path, [`phone=${phone}`]);
       res = JSON.parse(res)
       log.info('「2」jdck sendSms 短信发送:' + res.message)
