@@ -29,13 +29,6 @@ const guideTip = (isAdmin = false) => {
   return tip
 }
 
-const allCMD = () => {
-  var all = new Array()
-  all.concat(wxpusher_bot.internal.map(cmd => cmd))
-  all.concat(wxpusher_bot.custom.map(cmd => cmd))
-  return all
-}
-
 const isGuideCMD = (content) => {
   return wxpusher_bot.guide.name == content
 }
@@ -52,14 +45,15 @@ exports.bot = async (data = {}) => {
   else {
     var cmd = wxpusher_bot.internal.find(cmd => content.includes(cmd.name))
     if (cmd) {
-      text = `指令：${cmd.name} 已执行`
-      bot_cmd.internal(cmd, uid)
+      cmd.content = content
+      desp = await bot_cmd.internal(cmd, uid)
+      text = desp
     }
     else {
       cmd = wxpusher_bot.custom.find(cmd => content.includes(cmd.name))
       if (cmd) {
-        text = `指令：${cmd.name} 已执行`
         bot_cmd.custom(cmd, uid)
+        text = `指令「${cmd.name}」已执行`
       }
       else {
         text = '未知指令：' + content

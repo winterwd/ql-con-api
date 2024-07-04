@@ -7,13 +7,15 @@ const log = require('../../utils/log_util.js');
 
 function findPt_pin(params = '') {
   // params: pt_key=xxx;pt_pin=xxx
+  var pt_pin = ''
   const arr = params.split(';')
   arr.forEach(item => {
     if (item.includes('pt_pin=')) {
-      return item.split('pt_pin=')[1]
+      pt_pin = item.split('pt_pin=')[1]
+      return
     }
   });
-  return ''
+  return pt_pin
 }
 
 function findNickname(params = '') {
@@ -29,6 +31,7 @@ function findPhone(params = '') {
   arr.forEach(item => {
     if (item.startsWith('phone_')) {
       phone = item.split('phone_')[1]
+      return
     }
   });
 
@@ -41,10 +44,10 @@ function parseJDCKRemarks(params) {
   let nickname = arr[0] ?? '', uid = '', phone = ''
   arr.forEach(item => {
     if (item.startsWith('phone_')) {
-      phone = item.split('phone_')[1]
+      phone = item.split('phone_')[1] ?? ''
     }
     else if (item.startsWith('UID_')) {
-      uid = item.split('UID_')[1]
+      uid = item
     }
   });
 
@@ -78,8 +81,9 @@ class Api {
     const user = await this.getUserJDCKByPin(pt_pin)
     if (user) {
       const nickname = findNickname(user.remarks) ?? pt_pin
-      // remarks: nickname@@timestamp@@UID_xxxxx
-      user.remarks = `${nickname}@@${Date.now()}@@${uid}`
+      const phone = findPhone(user.remarks) ?? ''
+      // remarks: nickname@@timestamp@@UID_xxxxx@@phone_
+      user.remarks = `${nickname}@@${Date.now()}@@${uid}@@phone_${phone}`
       try {
         const token = await this.getToken()
         const res = await ql.updateEnvs(token, user)
@@ -103,6 +107,7 @@ class Api {
 
   // 用户修改 JD_COOKIE 备注
   async updateRemarks(data) {
+    // data：青龙的原始数据
     const { pt_pin, remarks } = data ?? {}
     log.info('updateRemarks pt_pin = ' + pt_pin + ', remarks = ' + remarks)
     const user = await this.getUserJDCKByPin(pt_pin)
@@ -111,7 +116,9 @@ class Api {
       const nickname = findNickname(user.remarks)
       log.info('updateRemarks old nickname = ' + (nickname ?? 'null'))
       const uid = findWxPusherUid(user.remarks) ?? ''
-      user.remarks = `${remarks}@@${Date.now()}@@${uid}`
+      const phone = findPhone(user.remarks) ?? ''
+      // remarks: nickname@@timestamp@@UID_xxxxx@@phone_xxx
+      user.remarks = `${remarks}@@${Date.now()}@@${uid}@@phone_${phone}`
       try {
         const token = await this.getToken()
         const res = await ql.updateEnvs(token, user)
@@ -131,6 +138,34 @@ class Api {
       }
     }
     else {
+      return this.error
+    }
+  }
+
+  async updateJDCKUserRemarks(data = {}) {
+    // data：修改后青龙数据 见：_getJDCKUser
+    const { pt_pin, remarks, phone, uid } = data
+    const temp = `${remarks}@@${Date.now()}@@${uid}@@phone_${phone}`
+    try {
+      const token = await this.getToken()
+      const res = await ql.updateEnvs(token, {
+        id: data.id,
+        value: data.value,
+        name: 'JD_COOKIE',
+        remarks: temp
+      })
+
+      if (res.code == 200) {
+        log.info('updateJDCKUserRemarks 更新成功')
+        // 更新成功 发送推送给管理员
+        this.sendNotify(`用户:${pt_pin},更新备注啦`, `亲爱的车主，用户：${pt_pin}，将备注改为：${temp}`)
+      }
+      else {
+        log.error('updateJDCKUserRemarks error = ' + JSON.stringify(res))
+      }
+      return res
+    } catch (e) {
+      log.error('updateJDCKUserRemarks error = ' + JSON.stringify(e))
       return this.error
     }
   }
@@ -365,7 +400,7 @@ class QLAPI {
 
   async _submitCK(ck) {
     if (process.env.npm_lifecycle_event == 'dev') {
-      return { code: 200, message: 'mock 成功' }
+      return { code: 200, message: 'mock 登录成功' }
     }
     return await api.submitCK(ck)
   }
@@ -402,9 +437,14 @@ class QLAPI {
         remarks,
         phone,
         uid: uid ?? '',
-        status: item.status
+        status: item.status,
+        value: item.value
       }
     })
+  }
+
+  static async _updateJDCKUser(data = {}) {
+    return await api.updateJDCKUserRemarks(data)
   }
 }
 

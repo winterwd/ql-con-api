@@ -34,32 +34,54 @@ const executeScript = (scriptPath, args = []) => {
 
 class JDCK {
   constructor() {
+    this.isDev = process.env.npm_lifecycle_event == 'dev'
+    log.info(`jdck process ${this.isDev ? 'dev' : 'product'} mode`)
 
-    if (process.env.npm_lifecycle_event == 'dev') {
-      this.sendSms = this.mockSendSms
-      this.checkCode = this.mockCheckCode
-      log.info('jdck process dev mode')
-      return
+    this.sendSms = this.sendSms.bind(this)
+    this.checkCode = this.checkCode.bind(this)
+  }
+
+  async sendSms (ctx, next) {
+    await next()
+    const phone = ctx.request.query.phone ?? ''
+    ctx.body = await this.realSendSms(phone)
+  }
+
+  async checkCode(ctx, next) {
+    await next()
+    const smscode = ctx.request.query.smscode
+    const user = ctx.request.body
+    ctx.body = await this.realCheckCode(smscode, user)
+  }
+
+  async realSendSms(phone = '') {
+    if (this.isDev) {
+      return await this.mockSendSms(phone)
     }
+    else {
+      return await this._sendSms(phone)
+    }
+  }
 
-    this.sendSms = this._sendSms
-    this.checkCode = this._checkCode
+  async realCheckCode(smscode = '', user = {}) {
+    if (this.isDev) {
+      return await this.mockCheckCode(smscode, user)
+    }
+    else {
+      return await this._checkCode(smscode, user)
+    }
   }
 
   // 发送验证码
-  async _sendSms(ctx, next) {
-    await next()
-    const phone = ctx.request.query.phone ?? ''
-
+  async _sendSms(phone = '') {
     // 是否合法手机号正则
     const phoneRegex = /^1[3-9]\d{9}$/;
     if (!phoneRegex.test(phone)) {
-      ctx.body = {
+      log.error('jdck sendSms 手机号格式错误 phone:', phone)
+      return {
         code: 400,
         message: '手机号格式错误'
       }
-      log.error('jdck sendSms 手机号格式错误 phone:', phone)
-      return
     }
 
     try {
@@ -69,10 +91,10 @@ class JDCK {
       var res = await executeScript(path, [`phone=${phone}`]);
       res = JSON.parse(res)
       log.info('「2」jdck sendSms 短信发送:' + res.message)
-      ctx.body = res
+      return res
     } catch (error) {
       log.error('jdck sendSms error:', error)
-      ctx.body = {
+      return {
         code: 400,
         message: '接口异常'
       }
@@ -80,21 +102,16 @@ class JDCK {
   }
 
   // 校验验证码&登录
-  async _checkCode(ctx, next) {
-    await next()
-    const smscode = ctx.request.query.smscode
-
+  async _checkCode(smscode = '', user = {}) {
     const regex = /^\d{6}$/;
     if (!regex.test(smscode)) {
-      ctx.body = {
+      return {
         code: 400,
         message: '验证码格式错误'
       }
-      return
     }
     try {
       // sendSms接口中的user参数
-      const user = ctx.request.body;
       log.info(`「3」jdck checkCode 手机:${user.mobile ?? ''}, smscode:${smscode}`)
 
       const path = projectRootDir + '/api/jdck/checkCode.js'
@@ -108,10 +125,10 @@ class JDCK {
       res = JSON.parse(res)
       log.info('「4」jdck checkCode 短信登录:' + res.message)
       console.log('checkCode res:', res)
-      ctx.body = res
+      return res
     } catch (error) {
       log.error('jdck sendSms error:' + JSON.stringify(error))
-      ctx.body = {
+      return {
         code: 400,
         message: '接口异常'
       }
@@ -119,69 +136,67 @@ class JDCK {
   }
 
   // mock
-  async mockSendSms(ctx, next) {
-    await next()
-    const phone = ctx.request.query.phone ?? ''
+  async mockSendSms(phone = '') {
     log.info('jdck mock sendSms query.phone:' + phone)
 
     // 是否合法手机号正则
     const phoneRegex = /^1[3-9]\d{9}$/;
     if (!phoneRegex.test(phone)) {
-      ctx.body = {
+      log.info('jdck mock sendSms message: 手机号格式错误')
+      return {
         code: 400,
         message: 'mock 手机号格式错误'
       }
-      log.info('jdck mock sendSms message: 手机号格式错误')
-      return
     }
 
-    const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
-    const fetchData = async () => {
-      await delay(0);
+    // const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
+    // const fetchData = async () => {
+    //   await delay(1);
 
-      ctx.body = {
-        code: 200,
-        message: '验证码发送成功',
-        data: {
-          mobile: phone,
-          gsalt: "j3TmuuGcSVwfB2OPrEmlL1J9p1tTDgOW",
-          guid: "eae890d7268d5e39a652d6f0f0c5f9c0",
-          lsid: "qHgZ3qAjIofkmGwydoPwU7FnnohktBMU",
-        }
+    //   return {
+    //     code: 200,
+    //     message: '验证码发送成功',
+    //     data: {
+    //       mobile: phone,
+    //       gsalt: "j3TmuuGcSVwfB2OPrEmlL1J9p1tTDgOW",
+    //       guid: "eae890d7268d5e39a652d6f0f0c5f9c0",
+    //       lsid: "qHgZ3qAjIofkmGwydoPwU7FnnohktBMU",
+    //     }
+    //   }
+    // };
+
+    // await fetchData();
+    return {
+      code: 200,
+      message: '验证码发送成功',
+      data: {
+        mobile: phone,
+        gsalt: "j3TmuuGcSVwfB2OPrEmlL1J9p1tTDgOW",
+        guid: "eae890d7268d5e39a652d6f0f0c5f9c0",
+        lsid: "qHgZ3qAjIofkmGwydoPwU7FnnohktBMU",
       }
-    };
-
-    await fetchData();
+    }
   }
 
-  async mockCheckCode(ctx, next) {
-    await next()
-    const smscode = ctx.request.query.smscode ?? ''
+  async mockCheckCode(smscode = '', user = {}) {
     log.info('jdck mock sendSms query.smscode:' + smscode)
 
     const regex = /^\d{6}$/;
     if (!regex.test(smscode)) {
-      ctx.body = {
+      return {
         code: 400,
         message: '验证码格式错误'
       }
-      return
     }
-    log.info('jdck mock checkCode body:' + JSON.stringify(ctx.request.body))
-    const { mobile } = ctx.request.body
-    const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
-    const fetchData = async () => {
-      await delay(0);
 
-      const ck = `pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_mock_${mobile};`;
-      ctx.body = {
-        code: 200,
-        message: 'mock 登录成功',
-        data: { ck }
-      }
-    };
-
-    await fetchData();
+    log.info('jdck mock checkCode body:' + JSON.stringify(user))
+    const { mobile } = user
+    const ck = `pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_mock_${mobile};`;
+    return {
+      code: 200,
+      message: 'mock 登录成功',
+      data: { ck }
+    }
   }
 }
 
