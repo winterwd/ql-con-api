@@ -52,7 +52,8 @@ exports.bot = async (data = {}) => {
     else {
       cmd = wxpusher_bot.custom.find(cmd => content.includes(cmd.name))
       if (cmd) {
-        bot_cmd.custom(cmd, uid)
+        cmd.content = content
+        desp = await bot_cmd.custom(cmd, uid)
         text = `指令「${cmd.name}」已执行`
       }
       else {

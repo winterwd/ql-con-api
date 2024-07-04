@@ -1,5 +1,7 @@
 const qlApi = require('../util/qlApi')
+const log = require('../../utils/log_util.js');
 const request = require('request')
+
 
 // return promise
 // user = {id,pt_pin,remarks,phone,uid,status}
@@ -188,34 +190,68 @@ exports.internal = async (cmd = {}, uid = '') => {
   }
 }
 
-const getQLTask = async (id) => {
-  const phone = data
-  const url = 'http://127.0.0.1:8864/api/jd/sendSms' + '?phone=' + phone
-  var options = {
-    'method': 'GET',
-    'url': url,
-    'headers': {
-      'Content-Type': 'application/json'
-    }
-  };
-
-  return someApiRequest(options)
-}
-
 // 自定义指令缓存 task id
 var qlTaskMap = {}
+
+const runTask = async (id = '') => {
+  const { code } = await qlApi._runCronTask(id)
+  return (code == 200) ? '任务执行成功' : '任务执行失败'
+}
+
 // 自定义指令，当前只支持青龙 task
 const task = async (data = {}) => {
-  const { name, task, index = -1 } = data
-  const taskName = `bot_${name}`
+  // num: 1或者 1-n 或者 1,2,3
+  const { name, command } = data
   const schedule = '7 29 2 * * *'
+  log.info(`bot 开始执行自定义指令：${command}`)
+
+  // 是否存在缓存
+  const taskName = `bot@@${name}`
+  let taskId = qlTaskMap[taskName] ?? -1
+  if (taskId == -1) {
+    const cronData = {
+      name: taskName,
+      schedule,
+      command
+    }
+    const { data, message } = await qlApi._createCronTask(cronData)
+    if (data) {
+      // 创建成功
+      taskId = data.id
+      qlTaskMap[taskName] = taskId
+      return await runTask(taskId)
+    }
+    else {
+      // 创建失败
+      log.error('bot 自定义指 task error = ' + message)
+      return '任务创建失败, 请联系管理员'
+    }
+  }
+  else {
+    // 存在缓存，尝试更新，可作为检查任务是否存在，也一并更新
+    const cronData = {
+      id: taskId,
+      schedule,
+      command
+    }
+    const { code, message } = await qlApi._updateCronTask(cronData)
+    // code:500, message: "Cron {\"id\":2830} not found"
+    if ((code == 500) && message.includes('not found')) {
+      qlTaskMap[taskName] = -1
+      return await task(data)
+    }
+    else {
+      // 更新成功
+      return await runTask(taskId)
+    }
+  }
 }
 
 // 自定义指令
 exports.custom = async (cmd = {}, uid = '') => {
   const { content, run } = cmd
-  const task = run
-  if (!task) {
+  const command = run
+  if (!command) {
     return '指令:' + content + ' task 未找到'
   }
 
@@ -239,11 +275,35 @@ exports.custom = async (cmd = {}, uid = '') => {
     return '用户未登录，请重新登录，再执行指令'
   }
 
-  const index = users.findIndex(item => item.uid == uid)
+  // 默认第一个，暂不支持多个
+  let index = users.findIndex(item => item.uid == uid)
   if (index == -1) {
     return '指令执行失败，未找到用户'
   }
+  // desi 从 1 开始
+  index += 1
 
-  name += user.pt_pin
-  return await task({ name, task, index: `${index}` })
+  // 一个uid下不管有多少pt_pin，都只一个
+  // name: 任务名+uid 作为唯一标识
+  name += `@@${uid}`
+  // num: 1或者 1-n 或者 1,2,3
+  num = index
+  return await task({ name, command: `${command} ${num}` })
 }
+
+// 服务器启动20秒后，开始缓存已经存在的自定义指令
+const cacheCmd = async () => {
+  log.info('开始缓存已经存在的自定义指令')
+  let { data, code, message } = await qlApi._searchCronTask('bot')
+  if (code == 200) {
+    data.data.forEach(item => {
+      qlTaskMap[item.name] = item.id
+    })
+    log.info(`自定义指令, 已缓存 ${data.total} 个任务`)
+  }
+  else {
+    log.error('自定义指令 cacheCmd error = ' + message)
+  }
+}
+setTimeout(cacheCmd, 20000)
+log.info('20秒后，开始缓存已经存在的自定义指令')

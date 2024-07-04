@@ -2,10 +2,11 @@ const request = require('request');
 const { qinglong } = require('../../utils/config');
 const log = require('../../utils/log_util');
 
-let ql_addr = qinglong.ql_addr ?? "http://127.0.0.1:5700"
-let client_id = qinglong.client_id ?? ""
-let client_secret = qinglong.client_secret ?? ""
-let QL_VALID = qinglong.client_id && qinglong.client_secret
+const ql_addr = qinglong.ql_addr ?? "http://127.0.0.1:5700"
+const ql_addrUrl = ql_addr + "/open";
+const client_id = qinglong.client_id ?? ""
+const client_secret = qinglong.client_secret ?? ""
+const QL_VALID = qinglong.client_id && qinglong.client_secret
 
 /**
  * 判断字符串是否为空
@@ -55,8 +56,7 @@ function login() {
   }
 
   // 登录url
-  let ql_addrUrl = ql_addr;
-  let loginUrl = ql_addrUrl + "/open/auth/token";
+  let loginUrl = ql_addrUrl + "/auth/token";
   // log.info('loginUrl = ' + loginUrl)
 
   return new Promise((resolve, reject) => {
@@ -98,8 +98,7 @@ function getEnvs(token = '', key = '') {
   }
 
   // 获取青龙环境变量url
-  let ql_addrUrl = ql_addr;
-  let qlEnvsUrl = ql_addrUrl + "/open/envs?searchValue=" + key;
+  let qlEnvsUrl = ql_addrUrl + "/envs?searchValue=" + key;
   // log.info('获取青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
@@ -136,8 +135,7 @@ function insertEnvs(token = '', envInfo = {}) {
   }
 
   // 添加青龙环境变量url
-  let ql_addrUrl = ql_addr;
-  let qlEnvsUrl = ql_addrUrl + "/open/envs";
+  let qlEnvsUrl = ql_addrUrl + "/envs";
   // log.info('添加青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
@@ -172,8 +170,7 @@ function updateEnvs(token = '', envInfo = {}) {
     return { code: 401, message: '更新青龙环境变量失败, token 为空' }
   }
   // 更新青龙环境变量url
-  let ql_addrUrl = ql_addr;
-  let qlEnvsUrl = ql_addrUrl + "/open/envs";
+  let qlEnvsUrl = ql_addrUrl + "/envs";
   // log.info('更新青龙环境变量 url = ' + qlEnvsUrl)
 
   const data = {
@@ -215,8 +212,7 @@ function deleteEnvs(token = '', envIDs = []) {
   }
 
   // 删除青龙环境变量url
-  let ql_addrUrl = ql_addr;
-  let qlEnvsUrl = ql_addrUrl + "/open/envs";
+  let qlEnvsUrl = ql_addrUrl + "/envs";
   // log.info('删除青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
@@ -252,8 +248,7 @@ function enableEnvs(token = '', envIDs = []) {
   }
 
   // 启用青龙环境变量url
-  let ql_addrUrl = ql_addr;
-  let qlEnvsUrl = ql_addrUrl + "/open/envs/enable";
+  let qlEnvsUrl = ql_addrUrl + "/envs/enable";
   // log.info('启用青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
@@ -289,8 +284,7 @@ function disableEnvs(token = '', envIDs = []) {
   }
 
   // 禁用青龙环境变量url
-  let ql_addrUrl = ql_addr;
-  let qlEnvsUrl = ql_addrUrl + "/open/envs/disable";
+  let qlEnvsUrl = ql_addrUrl + "/envs/disable";
   // log.info('禁用青龙环境变量 url = ' + qlEnvsUrl)
 
   return new Promise((resolve, reject) => {
@@ -316,20 +310,41 @@ function disableEnvs(token = '', envIDs = []) {
  * 获取 定时任务
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [id=''] id 定时任务id
+ * @param {number} [id] id 定时任务id
  * @return 定时任务
  */
-function getCronTask(token = '', id = '') {
+function getCronTask(token = '', id = -1) {
   log.info('获取 定时任务 id = ' + id)
   if (isEmptyString(token)) {
     return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
   }
-  if (isEmptyString(id)) {
+  if (id == -1) {
     return { code: 400, message: '失败, id 为空' }
   }
 
-  let ql_addrUrl = ql_addr;
   let url = ql_addrUrl + "/crons/" + id
+  let options = requestOptions(url, token)
+  options.method = 'GET'
+  return someApiRequest(options);
+}
+
+/**
+ * 搜索 定时任务
+ *
+ * @param {string} [token=''] token 登录青龙面板返回的token
+ * @param {string} [key] key 定时任务 key
+ * @return 定时任务
+ */
+function searchCronTask(token = '', key = '') {
+  log.info('搜索 定时任务 key = ' + key)
+  if (isEmptyString(token)) {
+    return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
+  }
+  if (!key) {
+    return { code: 400, message: '失败, key 为空' }
+  }
+
+  let url = ql_addrUrl + "/crons?searchValue=" + key
   let options = requestOptions(url, token)
   options.method = 'GET'
   return someApiRequest(options);
@@ -339,19 +354,18 @@ function getCronTask(token = '', id = '') {
  * 运行 定时任务
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [id=''] id 定时任务id
+ * @param {number} [id] id 定时任务id
  * @return 定时任务
  */
-function runCronTask(token = '', id = '') {
+function runCronTask(token = '', id = -1) {
   log.info('运行 定时任务 id = ' + id)
   if (isEmptyString(token)) {
     return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
   }
-  if (isEmptyString(id)) {
+  if (id == -1) {
     return { code: 400, message: '失败, id 为空' }
   }
 
-  let ql_addrUrl = ql_addr;
   let url = ql_addrUrl + "/crons/run"
   let options = requestOptions(url, token, body = [id])
   options.method = 'PUT'
@@ -362,7 +376,7 @@ function runCronTask(token = '', id = '') {
  * 创建定时任务
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [body={name, schedule, command}] body 定时任务
+ * @param {JSON} [body={name, schedule, command}] body 定时任务
  * @return 定时任务
  */
 function createCronTask(token = '', body = {}) {
@@ -370,7 +384,6 @@ function createCronTask(token = '', body = {}) {
   if (isEmptyString(token)) {
     return { code: 401, message: '创建定时任务失败, token 为空' }
   }
-  let ql_addrUrl = ql_addr;
   let url = ql_addrUrl + "/crons"
   let options = requestOptions(url, token, body)
   options.method = 'POST'
@@ -381,7 +394,7 @@ function createCronTask(token = '', body = {}) {
  * 更新定时任务
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [body={id, schedule, command}] body 定时任务
+ * @param {JSON} [body={id, schedule, command}] body 定时任务
  * @return 定时任务
  */
 function updateCronTask(token = '', body = {}) {
@@ -389,7 +402,7 @@ function updateCronTask(token = '', body = {}) {
   if (isEmptyString(token)) {
     return { code: 401, message: '更新定时任务失败, token 为空' }
   }
-  let ql_addrUrl = ql_addr;
+
   let url = ql_addrUrl + "/crons"
   let options = requestOptions(url, token, body)
   options.method = 'PUT'
@@ -407,6 +420,7 @@ class QL {
     this.disableEnvs = disableEnvs
     this.getCronTask = getCronTask
     this.runCronTask = runCronTask
+    this.searchCronTask = searchCronTask
     this.createCronTask = createCronTask
     this.updateCronTask = updateCronTask
   }

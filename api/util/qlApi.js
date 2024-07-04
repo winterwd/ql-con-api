@@ -370,6 +370,19 @@ class Api {
     }
   }
 
+  async searchCronTask(key) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.searchCronTask(token, key)
+      }
+      return this.error
+    } catch (error) {
+      log.error('getCronTask error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
+
   async runCronTask(id) {
     try {
       const token = await this.getToken()
@@ -503,8 +516,12 @@ class QLAPI {
     return await api.createCronTask(data)
   }
 
-  static async _getCronTask() {
-    return await api.getCronTask()
+  static async _getCronTask(id) {
+    return await api.getCronTask(id)
+  }
+
+  static async _searchCronTask(key) {
+    return await api.searchCronTask(key)
   }
 
   static async _updateCronTask(data = {}) {
