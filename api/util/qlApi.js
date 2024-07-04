@@ -356,6 +356,58 @@ class Api {
       return this.error
     }
   }
+
+  async getCronTask(id) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.getCronTask(token, id)
+      }
+      return this.error
+    } catch (error) {
+      log.error('getCronTask error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
+
+  async runCronTask(id) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.runCronTask(token, id)
+      }
+      return this.error
+    } catch (error) {
+      log.error('runCronTask error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
+
+  async createCronTask(data) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.createCronTask(token, data)
+      }
+      return this.error
+    } catch (error) {
+      log.error('createCronTask error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
+
+  async updateCronTask(data) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.updateCronTask(token, data)
+      }
+      return this.error
+    } catch (error) {
+      log.error('updateCronTask error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
 }
 
 const api = new Api()
@@ -445,6 +497,22 @@ class QLAPI {
 
   static async _updateJDCKUser(data = {}) {
     return await api.updateJDCKUserRemarks(data)
+  }
+
+  static async _createCronTask(data = {}) {
+    return await api.createCronTask(data)
+  }
+
+  static async _getCronTask() {
+    return await api.getCronTask()
+  }
+
+  static async _updateCronTask(data = {}) {
+    return await api.updateCronTask(data)
+  }
+
+  static async _runCronTask(id) {
+    return await api.runCronTask(id)
   }
 }
 

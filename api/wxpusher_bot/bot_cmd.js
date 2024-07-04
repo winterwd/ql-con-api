@@ -5,6 +5,7 @@ const request = require('request')
 // user = {id,pt_pin,remarks,phone,uid,status}
 const jdckUsers = () => qlApi._getJDCKUser()
 
+// 通过 备注里面的 uid 来找到当前用户
 function findJDCKUser(users = [], uid = '') {
   return users.find(item => item.uid == uid)
 }
@@ -166,19 +167,6 @@ const internalCMD = {
   'ck_online': ck_online
 }
 
-// 自定义指令，当前只支持青龙 task
-const task = async (data = {}) => {
-
-}
-
-// 通过 备注里面的 uid 来找到当前用户
-const checkUserInfo = async (uid) => {
-  if (adminUID == uid) {
-    return true
-  }
-  return false
-}
-
 // 系统内部指令
 exports.internal = async (cmd = {}, uid = '') => {
   const { content, run } = cmd
@@ -200,7 +188,62 @@ exports.internal = async (cmd = {}, uid = '') => {
   }
 }
 
+const getQLTask = async (id) => {
+  const phone = data
+  const url = 'http://127.0.0.1:8864/api/jd/sendSms' + '?phone=' + phone
+  var options = {
+    'method': 'GET',
+    'url': url,
+    'headers': {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  return someApiRequest(options)
+}
+
+// 自定义指令缓存 task id
+var qlTaskMap = {}
+// 自定义指令，当前只支持青龙 task
+const task = async (data = {}) => {
+  const { name, task, index = -1 } = data
+  const taskName = `bot_${name}`
+  const schedule = '7 29 2 * * *'
+}
+
 // 自定义指令
 exports.custom = async (cmd = {}, uid = '') => {
+  const { content, run } = cmd
+  const task = run
+  if (!task) {
+    return '指令:' + content + ' task 未找到'
+  }
 
+  const args = content.split(' ')
+  let name = args[0] ?? ''
+  // let param = ""
+  // if (args.length > 1) {
+  //   param = args[1]
+  // }
+  // index: 指定 0，默认第一个
+
+  var users = await jdckUsers()
+  var user = findJDCKUser(users, uid)
+  if (!user) {
+    return '未查询到相关信息，请确保已经绑定微信推送，并关注公众号(wxpusher)后再试'
+
+  }
+  users = users.filter(item => item.status == 0)
+  user = findJDCKUser(users, uid)
+  if (!user) {
+    return '用户未登录，请重新登录，再执行指令'
+  }
+
+  const index = users.findIndex(item => item.uid == uid)
+  if (index == -1) {
+    return '指令执行失败，未找到用户'
+  }
+
+  name += user.pt_pin
+  return await task({ name, task, index: `${index}` })
 }
