@@ -15,6 +15,8 @@ qinglong:
 
 # 微信推送配置
 wxpusher:
+  # appId
+  appId:
   # wxpusher appToken
   appToken:
   # wxpusher 管理员uid, 用于接收车友消息

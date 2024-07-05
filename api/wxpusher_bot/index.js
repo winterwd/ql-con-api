@@ -43,14 +43,14 @@ exports.bot = async (data = {}) => {
     desp = guideTip(isAdmin)
   }
   else {
-    var cmd = wxpusher_bot.internal.find(cmd => content.includes(cmd.name))
+    var cmd = wxpusher_bot.internal.find(cmd => content.startsWith(cmd.name))
     if (cmd) {
       cmd.content = content
       desp = await bot_cmd.internal(cmd, uid)
       text = desp
     }
     else {
-      cmd = wxpusher_bot.custom.find(cmd => content.includes(cmd.name))
+      cmd = wxpusher_bot.custom.find(cmd => content.startsWith(cmd.name))
       if (cmd) {
         cmd.content = content
         desp = await bot_cmd.custom(cmd, uid)

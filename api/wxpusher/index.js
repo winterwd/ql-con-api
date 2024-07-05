@@ -109,12 +109,16 @@ class WxPusher {
   }
 
   _send_up_cmd(data = {}) {
-    const { uid, content } = data
+    var { uid, content } = data
     // 没有 content
     if (content == undefined || content == '') {
       return { code: 400, message: '没有 content' }
     }
-
+    // -xxx 指令
+    // #xxx 指令
+    content = content.replace(`-${wxpusher.appId}`, '')
+    content = content.replace(`#${wxpusher.appId}`, '')
+    content = content.trim()
     return { code: 200, message: '收到指令', data: { content: content, uid: uid, action: 'send_up_cmd' } }
   }
 
