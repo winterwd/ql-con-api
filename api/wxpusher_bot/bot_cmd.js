@@ -194,8 +194,8 @@ exports.internal = async (cmd = {}, uid = '') => {
 var qlTaskMap = {}
 
 const runTask = async (id = '') => {
-  const { code } = await qlApi._runCronTask(id)
-  return (code == 200) ? '任务执行成功' : '任务执行失败'
+  const res = await qlApi._runCronTask(id)
+  return (res.code == 200) ? '任务执行成功' : '任务执行失败'
 }
 
 // 自定义指令，当前只支持青龙 task
@@ -257,38 +257,58 @@ exports.custom = async (cmd = {}, uid = '') => {
 
   const args = content.split(' ')
   let name = args[0] ?? ''
-  // let param = ""
-  // if (args.length > 1) {
-  //   param = args[1]
-  // }
-  // index: 指定 0，默认第一个
+  let param = ""
+  if (args.length > 1) {
+    param = args[1]
+  }
+
+  // 解析参数
+  // param: 1或者 n-m 或者 没有参数
+  let start = 0, end = 0
+  if (!param || param == '1') {
+    start = 0
+    end = 0
+  }
+  else if (param.includes('-')) {
+    const arr = param.split('-')
+    start = parseInt(arr[0] ?? 0)
+    end = parseInt(arr[1] ?? 0)
+  }
 
   var users = await jdckUsers()
   var user = findJDCKUser(users, uid)
   if (!user) {
     return '未查询到相关信息，请确保已经绑定微信推送，并关注公众号(wxpusher)后再试'
-
   }
-  users = users.filter(item => item.status == 0)
-  user = findJDCKUser(users, uid)
-  if (!user) {
+
+  // 所有在线用户，最终的 desi 序号从这里产生
+  const allOnlineUsers = users.filter(item => item.status == 0)
+  // 指定用户
+  users = allOnlineUsers.filter(item => item.uid == uid)
+  if (users.length == 0) {
     return '用户未登录，请重新登录，再执行指令'
   }
 
-  // 默认第一个，暂不支持多个
-  let index = users.findIndex(item => item.uid == uid)
-  if (index == -1) {
-    return '指令执行失败，未找到用户'
+  var nums = new Array()
+  if (start == 0 || end == 0) {
+    // 默认第一个
+    const index = allOnlineUsers.findIndex(item => item.uid == uid)
+    nums.push(index + 1)
   }
-  // desi 从 1 开始
-  index += 1
+  else {
+    start = Math.min(start, users.length)
+    end = Math.min(end, users.length)
+    end = Math.max(end, start)
+    for (var i = start; i <= end; i++) {
+      const user = users[i - 1]
+      const index = allOnlineUsers.findIndex(item => item.id == user.id)
+      nums.push(index + 1)
+    }
+  }
 
-  // 一个uid下不管有多少pt_pin，都只一个
   // name: 任务名+uid 作为唯一标识
   name += `@@${uid}`
-  // num: 1或者 1-n 或者 1,2,3
-  num = index
-  return await task({ name, command: `${command} ${num}` })
+  return await task({ name, command: `${command} ${nums.join(',')}` })
 }
 
 // 服务器启动20秒后，开始缓存已经存在的自定义指令

@@ -35,7 +35,7 @@ const someApiRequest = async (options = {}) => {
         reject(error)
       }
       else {
-        const result = JSON.parse(body) ?? {}
+        const result = JSON.parse(body) ?? { code: 400, message: '接口异常' }
         resolve(result)
       }
     });
@@ -49,38 +49,21 @@ const someApiRequest = async (options = {}) => {
 function login() {
   log.info('登录青龙面板接口')
 
-  let code = 400
-
   if (!QL_VALID) {
-    return { code, message: ' 请检查client_id 和 请检查client_secret' }
+    return { code: 400, message: ' 请检查client_id 和 请检查client_secret' }
   }
 
   // 登录url
-  let loginUrl = ql_addrUrl + "/auth/token";
-  // log.info('loginUrl = ' + loginUrl)
-
-  return new Promise((resolve, reject) => {
-    request.get({
-      url: loginUrl,
-      qs: {
-        'client_id': client_id,
-        'client_secret': client_secret
-      }
-    }, function (error, response, body) {
-      if (error !== null) {
-        reject(error)
-        return
-      }
-
-      let result = JSON.parse(body)
-      if (result.code == 200) {
-        resolve({ ...result, message: '登录成功' })
-      }
-      else {
-        reject(result)
-      }
-    })
-  })
+  let url = ql_addrUrl + "/auth/token";
+  let options = {
+    url,
+    method: 'GET',
+    qs: {
+      'client_id': client_id,
+      'client_secret': client_secret
+    }
+  }
+  return someApiRequest(options);
 }
 
 /**
@@ -94,108 +77,67 @@ function getEnvs(token = '', key = '') {
   log.info('获取青龙环境变量 searchValue = ' + key)
 
   if (isEmptyString(token)) {
-    return { code: 401, message: '获取青龙环境变量失败, token 为空' }
+    return { code: 400, message: '获取青龙环境变量失败' }
   }
 
   // 获取青龙环境变量url
-  let qlEnvsUrl = ql_addrUrl + "/envs?searchValue=" + key;
-  // log.info('获取青龙环境变量 url = ' + qlEnvsUrl)
+  let url = ql_addrUrl + "/envs?searchValue=" + key;
+  // log.info('获取青龙环境变量 url = ' + url)
 
-  return new Promise((resolve, reject) => {
-    request.get(requestOptions(qlEnvsUrl, token),
-      function (error, response, body) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-
-        // log.info('获取青龙环境变量 result = ' + body)
-        const result = JSON.parse(body)
-        if (result.code == 200) {
-          resolve({ code: result.code, data: result.data, message: '获取青龙环境变量成功' })
-        } else {
-          reject(result)
-        }
-      })
-  })
+  let options = requestOptions(url, token)
+  options.method = 'GET'
+  return someApiRequest(options);
 }
 
 /**
  * 添加青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [envInfo={name,value,remarks}] envInfo 青龙环境变量
+ * @param {JSON} [envInfo={name,value,remarks}] envInfo 青龙环境变量
  * @return 青龙环境变量
  */
 function insertEnvs(token = '', envInfo = {}) {
   log.info('添加青龙环境变量 envInfo = ' + JSON.stringify(envInfo))
 
   if (isEmptyString(token)) {
-    return { code: 401, message: '添加青龙环境变量失败, token 为空' }
+    return { code: 400, message: '添加青龙环境变量失败' }
   }
 
   // 添加青龙环境变量url
-  let qlEnvsUrl = ql_addrUrl + "/envs";
-  // log.info('添加青龙环境变量 url = ' + qlEnvsUrl)
+  let url = ql_addrUrl + "/envs";
+  // log.info('添加青龙环境变量 url = ' + url)
 
-  return new Promise((resolve, reject) => {
-    request.post(requestOptions(qlEnvsUrl, token, body = [envInfo]),
-      function (error, response, body) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-
-        // log.info('添加青龙环境变量 result = ' + body)
-        const result = JSON.parse(body)
-        if (result.code == 200) {
-          resolve({ code: result.code, data: result.data, message: '添加青龙环境变量成功' })
-        } else {
-          reject(result)
-        }
-      })
-  })
+  let options = requestOptions(url, token, body = [envInfo])
+  options.method = 'POST'
+  return someApiRequest(options);
 }
 
 /**
  * 更新青龙环境变量
  *
  * @param {string} [token=''] token 登录青龙面板返回的token
- * @param {string} [envInfo={name,value,remarks,id}] envInfo 青龙环境变量
+ * @param {JSON} [envInfo={name,value,remarks,id}] envInfo 青龙环境变量
  * @return 青龙环境变量
  */
 function updateEnvs(token = '', envInfo = {}) {
   log.info('更新青龙环境变量 envInfo = ' + JSON.stringify(envInfo))
   if (isEmptyString(token)) {
-    return { code: 401, message: '更新青龙环境变量失败, token 为空' }
+    return { code: 400, message: '更新青龙环境变量失败' }
   }
   // 更新青龙环境变量url
-  let qlEnvsUrl = ql_addrUrl + "/envs";
-  // log.info('更新青龙环境变量 url = ' + qlEnvsUrl)
+  let url = ql_addrUrl + "/envs";
+  // log.info('更新青龙环境变量 url = ' + url)
 
-  const data = {
+  const body = {
     "name": envInfo.name,
     "value": envInfo.value,
     "remarks": envInfo.remarks,
     "id": envInfo.id
   }
-  return new Promise((resolve, reject) => {
-    request.put(requestOptions(qlEnvsUrl, token, body = data),
-      function (error, response, body) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
 
-        // log.info('更新青龙环境变量 result = ' + body)
-        const result = JSON.parse(body)
-        if (result.code == 200) {
-          resolve({ code: result.code, data: result.data, message: '更新青龙环境变量成功' })
-        } else {
-          reject(result)
-        }
-      })
-  })
+  let options = requestOptions(url, token, body)
+  options.method = 'PUT'
+  return someApiRequest(options);
 }
 
 /**
@@ -208,30 +150,14 @@ function updateEnvs(token = '', envInfo = {}) {
 function deleteEnvs(token = '', envIDs = []) {
   log.info('删除青龙环境变量接口 evnIDs = ' + JSON.stringify(envIDs))
   if (isEmptyString(token)) {
-    return { code: 401, message: '删除青龙环境变量失败, token 为空' }
+    return { code: 400, message: '删除青龙环境变量失败' }
   }
 
   // 删除青龙环境变量url
-  let qlEnvsUrl = ql_addrUrl + "/envs";
-  // log.info('删除青龙环境变量 url = ' + qlEnvsUrl)
-
-  return new Promise((resolve, reject) => {
-    request.delete(requestOptions(qlEnvsUrl, token, body = envIDs),
-      function (error, response, body) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-
-        // log.info('删除青龙环境变量 result = ' + body)
-        const result = JSON.parse(body)
-        if (result.code == 200) {
-          resolve({ code: result.code, data: result.data, message: '删除青龙环境变量成功' })
-        } else {
-          reject(result)
-        }
-      })
-  })
+  let url = ql_addrUrl + "/envs";
+  let options = requestOptions(url, token, envIDs)
+  options.method = 'DELETE'
+  return someApiRequest(options);
 }
 
 /**
@@ -244,30 +170,14 @@ function deleteEnvs(token = '', envIDs = []) {
 function enableEnvs(token = '', envIDs = []) {
   log.info('启用青龙环境变量接口 evnIDs = ' + JSON.stringify(envIDs))
   if (isEmptyString(token)) {
-    return { code: 401, message: '启用青龙环境变量失败, token 为空' }
+    return { code: 400, message: '启用青龙环境变量失败' }
   }
 
   // 启用青龙环境变量url
-  let qlEnvsUrl = ql_addrUrl + "/envs/enable";
-  // log.info('启用青龙环境变量 url = ' + qlEnvsUrl)
-
-  return new Promise((resolve, reject) => {
-    request.put(requestOptions(qlEnvsUrl, token, body = envIDs),
-      function (error, response, body) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-
-        // log.info('启用青龙环境变量 result = ' + body)
-        const result = JSON.parse(body)
-        if (result.code == 200) {
-          resolve({ code: result.code, message: '启用青龙环境变量成功' })
-        } else {
-          reject(result)
-        }
-      })
-  })
+  let url = ql_addrUrl + "/envs/enable";
+  let options = requestOptions(url, token, envIDs)
+  options.method = 'PUT'
+  return someApiRequest(options);
 }
 
 /**
@@ -280,30 +190,14 @@ function enableEnvs(token = '', envIDs = []) {
 function disableEnvs(token = '', envIDs = []) {
   log.info('禁用青龙环境变量接口 evnIDs = ' + JSON.stringify(envIDs))
   if (isEmptyString(token)) {
-    return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
+    return { code: 400, message: '禁用青龙环境变量失败' }
   }
 
   // 禁用青龙环境变量url
-  let qlEnvsUrl = ql_addrUrl + "/envs/disable";
-  // log.info('禁用青龙环境变量 url = ' + qlEnvsUrl)
-
-  return new Promise((resolve, reject) => {
-    request.put(requestOptions(qlEnvsUrl, token, body = envIDs),
-      function (error, response, body) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-
-        // log.info('禁用青龙环境变量 result = ' + body)
-        const result = JSON.parse(body)
-        if (result.code == 200) {
-          resolve({ code: result.code, data: result.data, message: '禁用青龙环境变量成功' })
-        } else {
-          reject(result)
-        }
-      })
-  })
+  let url = ql_addrUrl + "/envs/disable";
+  let options = requestOptions(url, token, envIDs)
+  options.method = 'PUT'
+  return someApiRequest(options);
 }
 
 /**
@@ -316,7 +210,7 @@ function disableEnvs(token = '', envIDs = []) {
 function getCronTask(token = '', id = -1) {
   log.info('获取 定时任务 id = ' + id)
   if (isEmptyString(token)) {
-    return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
+    return { code: 400, message: '禁用青龙环境变量失败' }
   }
   if (id == -1) {
     return { code: 400, message: '失败, id 为空' }
@@ -338,7 +232,7 @@ function getCronTask(token = '', id = -1) {
 function searchCronTask(token = '', key = '') {
   log.info('搜索 定时任务 key = ' + key)
   if (isEmptyString(token)) {
-    return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
+    return { code: 400, message: '禁用青龙环境变量失败' }
   }
   if (!key) {
     return { code: 400, message: '失败, key 为空' }
@@ -360,7 +254,7 @@ function searchCronTask(token = '', key = '') {
 function runCronTask(token = '', id = -1) {
   log.info('运行 定时任务 id = ' + id)
   if (isEmptyString(token)) {
-    return { code: 401, message: '禁用青龙环境变量失败, token 为空' }
+    return { code: 400, message: '禁用青龙环境变量失败' }
   }
   if (id == -1) {
     return { code: 400, message: '失败, id 为空' }
@@ -382,7 +276,7 @@ function runCronTask(token = '', id = -1) {
 function createCronTask(token = '', body = {}) {
   log.info('创建定时任务 body = ' + JSON.stringify(body))
   if (isEmptyString(token)) {
-    return { code: 401, message: '创建定时任务失败, token 为空' }
+    return { code: 400, message: '创建定时任务失败' }
   }
   let url = ql_addrUrl + "/crons"
   let options = requestOptions(url, token, body)
@@ -400,7 +294,7 @@ function createCronTask(token = '', body = {}) {
 function updateCronTask(token = '', body = {}) {
   log.info('更新定时任务 body = ' + JSON.stringify(body))
   if (isEmptyString(token)) {
-    return { code: 401, message: '更新定时任务失败, token 为空' }
+    return { code: 400, message: '更新定时任务失败' }
   }
 
   let url = ql_addrUrl + "/crons"
