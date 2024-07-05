@@ -314,16 +314,32 @@ exports.custom = async (cmd = {}, uid = '') => {
 // 服务器启动20秒后，开始缓存已经存在的自定义指令
 const cacheCmd = async () => {
   log.info('开始缓存已经存在的自定义指令')
-  let { data, code, message } = await qlApi._searchCronTask('bot')
+  let { data, code, message } = await qlApi._searchCronTask('bot@@')
   if (code == 200) {
-    data.data.forEach(item => {
-      qlTaskMap[item.name] = item.id
-    })
-    log.info(`自定义指令, 已缓存 ${data.total} 个任务`)
+    try {
+      let array = []
+      if (Array.isArray(data)) {
+        array = data
+      }
+      else if (Array.isArray(data.data)) {
+        array = data.data
+      }
+      else {
+        log.info(`自定义指令, 获取任务列表 error = ${message}`)
+        return
+      }
+
+      array.forEach(item => {
+        qlTaskMap[item.name] = item.id
+      })
+      log.info(`自定义指令, 已缓存 ${array.length} 个任务`)
+    } catch (error) {
+      log.error('自定义指令 cacheCmd error = ' + JSON.stringify(error))
+    }
   }
   else {
     log.error('自定义指令 cacheCmd error = ' + message)
   }
 }
-setTimeout(cacheCmd, 20000)
+setTimeout(cacheCmd, 5000)
 log.info('20秒后，开始缓存已经存在的自定义指令')
