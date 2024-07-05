@@ -14,11 +14,11 @@ const args = process.argv.splice(1)
   user.mobile = phone;
   const res = await sendSms(user);
 
-  const code = res.err_code == 0 ? 200 : 400
+  const code = (res.err_code == 0) ? 200 : 400
   let ret = {
     code: code,
-    data: code === 200 ? user : {},
-    message: code === 200 ? '验证码发送成功' : res.err_msg ?? '验证码发送失败'
+    data: (code === 200) ? user : {},
+    message: (code === 200) ? '验证码发送成功' : (res.err_msg ?? '验证码发送失败')
   }
   console.log(JSON.stringify(ret))
 })()

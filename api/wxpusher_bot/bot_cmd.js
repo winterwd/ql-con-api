@@ -341,5 +341,7 @@ const cacheCmd = async () => {
     log.error('自定义指令 cacheCmd error = ' + message)
   }
 }
-setTimeout(cacheCmd, 5000)
-log.info('20秒后，开始缓存已经存在的自定义指令')
+
+const seconds = 15
+setTimeout(cacheCmd, seconds*1000)
+log.info(`${seconds}秒后，开始缓存已经存在的自定义指令`)

@@ -39,6 +39,17 @@ class JDCK {
 
     this.sendSms = this.sendSms.bind(this)
     this.checkCode = this.checkCode.bind(this)
+    this.realSendSms = this.realSendSms.bind(this)
+    this.realCheckCode = this.realCheckCode.bind(this)
+
+    if (this.isDev) {
+      this.mockSendSms = this.mockSendSms.bind(this)
+      this.mockCheckCode = this.mockCheckCode.bind(this)
+    }
+    else {
+      this._sendSms = this._sendSms.bind(this)
+      this._checkCode = this._checkCode.bind(this)
+    }
   }
 
   async sendSms (ctx, next) {
@@ -93,7 +104,7 @@ class JDCK {
       log.info('「2」jdck sendSms 短信发送:' + res.message)
       return res
     } catch (error) {
-      log.error('jdck sendSms error:', error)
+      log.error('jdck sendSms error:' + error)
       return {
         code: 400,
         message: '接口异常'
@@ -113,21 +124,20 @@ class JDCK {
     try {
       // sendSms接口中的user参数
       log.info(`「3」jdck checkCode 手机:${user.mobile ?? ''}, smscode:${smscode}`)
-
-      const path = projectRootDir + '/api/jdck/checkCode.js'
-      var res = await executeScript(path, [
+      const path = rootDir + '/api/jdck/checkCode.js'
+      const res = await executeScript(path, [
         `smscode=${smscode}`,
         `phone=${user.mobile ?? ''}`,
         `gsalt=${user.gsalt ?? ''}`,
         `guid=${user.guid ?? ''}`,
         `lsid=${user.lsid ?? ''}`
       ]);
-      res = JSON.parse(res)
-      log.info('「4」jdck checkCode 短信登录:' + res.message)
-      console.log('checkCode res:', res)
-      return res
+      const ret = JSON.parse(res)
+      log.info('「4」jdck checkCode 短信登录:' + ret.message)
+      console.log('checkCode res:', ret)
+      return ret
     } catch (error) {
-      log.error('jdck sendSms error:' + JSON.stringify(error))
+      log.error('jdck checkCode error:' + error)
       return {
         code: 400,
         message: '接口异常'
