@@ -202,7 +202,7 @@ const runTask = async (id = '') => {
 const task = async (data = {}) => {
   // num: 1或者 1-n 或者 1,2,3
   const { name, command } = data
-  const schedule = '7 29 2 * * *'
+  const schedule = data.schedule || '1 1 29 2 *'
   log.info(`bot 开始执行自定义指令：${command}`)
 
   // 是否存在缓存
@@ -249,7 +249,7 @@ const task = async (data = {}) => {
 
 // 自定义指令
 exports.custom = async (cmd = {}, uid = '') => {
-  const { content, run } = cmd
+  const { content, run, schedule } = cmd
   const command = run
   if (!command) {
     return '指令:' + content + ' task 未找到'
@@ -308,7 +308,7 @@ exports.custom = async (cmd = {}, uid = '') => {
 
   // name: 任务名+uid 作为唯一标识
   name += `@@${uid}`
-  return await task({ name, command: `${command} ${nums.join(',')}` })
+  return await task({ name, command: `${command} ${nums.join(',')}`, schedule })
 }
 
 // 服务器启动20秒后，开始缓存已经存在的自定义指令
@@ -343,5 +343,5 @@ const cacheCmd = async () => {
 }
 
 const seconds = 15
-setTimeout(cacheCmd, seconds*1000)
+setTimeout(cacheCmd, seconds * 1000)
 log.info(`${seconds}秒后，开始缓存已经存在的自定义指令`)

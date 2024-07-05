@@ -63,15 +63,18 @@ wxpusher_bot:
   custom:
     - desc: 新农场自动浇水，有多少水就浇多少，直到浇完或者成熟
       name: 浇水
+      schedule: 1 1 29 2 *
       run: task shufflewzc_faker3_main/jd_XinFarm_water.js desi JD_COOKIE
       example: 浇水 or 浇水 n or 浇水 n-m
 
     - desc: 当天京豆详情统计
       name: 京豆
+      schedule: 1 1 29 2 *
       run: task shufflewzc_faker3_main/jd_bean_info.js desi JD_COOKIE
       example: 京豆 or 京豆 n or 京豆 n-m
 
     - desc: 京东资产统计
       name: 资产
+      schedule: 1 1 29 2 *
       run: task shufflewzc_faker3_main/jd_bean_change.js desi JD_COOKIE
       example: 资产 or 资产 n or 资产 n-m
