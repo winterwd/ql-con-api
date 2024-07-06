@@ -35,10 +35,14 @@ const someApiRequest = async (options = {}) => {
         reject(error)
       }
       else {
-        const result = JSON.parse(body) ?? { code: 400, message: '接口异常' }
-        resolve(result)
+        try {
+          const result = JSON.parse(body) ?? { code: 400, message: '接口异常' }
+          resolve(result)
+        } catch (error) {
+          reject(error)
+        }
       }
-    });
+    })
   })
 }
 

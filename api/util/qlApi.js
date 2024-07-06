@@ -503,7 +503,8 @@ class QLAPI {
         phone,
         uid: uid ?? '',
         status: item.status,
-        value: item.value
+        value: item.value,
+        updatedAt: item.updatedAt
       }
     })
   }
