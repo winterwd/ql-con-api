@@ -38,25 +38,23 @@ exports.bot = async (data = {}) => {
   let { content, uid } = data
   const isAdmin = (adminUID == uid)
 
-  var desp = '', text = '点击查看结果'
+  var desp = '', text = `指令「${content}」已执行`
   if (isGuideCMD(content)) {
     text = wxpusher_bot.guide.desc
     desp = guideTip(isAdmin)
   }
   else {
     const cmdName = content.split(' ')[0] || ''
-    var cmd = wxpusher_bot.internal.find(cmd => cmdName.startsWith(cmd.name))
+    var cmd = wxpusher_bot.internal.find(cmd => cmdName == cmd.name)
     if (cmd) {
       cmd.content = content
       desp = await bot_cmd.internal(cmd, uid)
-      text = desp
     }
     else {
-      cmd = wxpusher_bot.custom.find(cmd => cmdName.startsWith(cmd.name))
+      cmd = wxpusher_bot.custom.find(cmd => cmdName == cmd.name)
       if (cmd) {
         cmd.content = content
         desp = await bot_cmd.custom(cmd, uid)
-        text = `指令「${cmd.name}」已执行`
       }
       else {
         text = '未知指令：' + content

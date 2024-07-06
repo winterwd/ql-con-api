@@ -3,13 +3,26 @@ const log = require('../../utils/log_util.js');
 const request = require('request')
 const CmdPrefix = 'bot@@'
 
+const dateFormatterCN = (str = '') => {
+  const date = new Date(str);
+  const year = date.getFullYear().toString().padStart(4, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const hour = date.getHours().toString().padStart(2, "0");
+  const minute = date.getMinutes().toString().padStart(2, "0");
+  const second = date.getSeconds().toString().padStart(2, "0");
+
+  // 2023-02-16 08:25:05
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
+
 // return promise
 // user = {id,pt_pin,remarks,phone,uid,status}
 const jdckUsers = () => qlApi._getJDCKUser()
 
 // 绑定手机号码
-const bind_jd_phone = async (data = {}) => {
-  const { uid, param } = data
+const bind_jd_phone = async (body = {}) => {
+  const { uid, param } = body
   let phone = param[0] || ''
   let num = parseInt(param[1]) || 1
 
@@ -24,7 +37,7 @@ const bind_jd_phone = async (data = {}) => {
   if (users.length < num) {
     return '指令序号不对，请重新输入'
   }
-  
+
   var user = users[num - 1]
   user.phone = phone
   const { code, message } = await qlApi._updateJDCKUser(user)
@@ -37,7 +50,6 @@ const bind_jd_phone = async (data = {}) => {
 }
 
 // 缓存发送短信验证后的数据 key: uid+phone 
-// 6分钟内有效
 var jdSmsMap = {}
 const removeInvaildJDSMS = (key) => jdSmsMap[key] = null;
 
@@ -59,8 +71,7 @@ const someApiRequest = async (options = {}) => {
   })
 }
 
-const send_jd_sms_api = async (data = '') => {
-  const phone = data
+const send_jd_sms_api = async (phone = '') => {
   const url = 'http://127.0.0.1:8864/api/jd/sendSms' + '?phone=' + phone
   var options = {
     'method': 'GET',
@@ -74,8 +85,8 @@ const send_jd_sms_api = async (data = '') => {
 }
 
 // 发送短信验证码
-const send_jd_sms = async (data = {}) => {
-  const { uid, param } = data
+const send_jd_sms = async (body = {}) => {
+  const { uid, param } = body
   let num = parseInt(param[0]) || 1
 
   var users = await jdckUsers()
@@ -106,8 +117,8 @@ const send_jd_sms = async (data = {}) => {
   }
 }
 
-const login_jd_sms_api = async (data = {}) => {
-  const { smscode = '', user = {} } = data
+const login_jd_sms_api = async (body = {}) => {
+  const { smscode = '', user = {} } = body
   const url = 'http://127.0.0.1:8864/api/jd/checkCode' + '?smscode=' + smscode
   var options = {
     'method': 'POST',
@@ -122,8 +133,8 @@ const login_jd_sms_api = async (data = {}) => {
 }
 
 // 短信登录
-const login_jd_sms = async (data = {}) => {
-  const { uid, param } = data
+const login_jd_sms = async (body = {}) => {
+  const { uid, param } = body
   let smscode = param[0] || ''
 
   const regex = /^\d{6}$/;
@@ -158,8 +169,8 @@ const login_jd_sms = async (data = {}) => {
 
 }
 
-const ck_info = async (data) => {
-  const { uid } = data
+const ck_info = async (body) => {
+  const uid = body.uid ?? ''
   var users = await jdckUsers()
   users = users.filter(item => item.uid == uid)
 
@@ -167,22 +178,22 @@ const ck_info = async (data) => {
   users.forEach((item, index) => {
     const online = item.status == 0 ? '启用' : '禁用'
     const phone = item.phone ? '已绑定' : '未绑定'
-    const time = new Date(item.updatedAt ?? '').toLocaleString()
+    const time = dateFormatterCN(item.updatedAt)
     text += `序号：${index + 1}\n用户：${item.pt_pin}\n状态：${online}\n备注：${item.remarks}\n手机：${phone}\n更新时间：${time}\n\n`
   })
   return text
 }
 
 // CK在线情况
-const ck_online = async (data) => {
+const ck_online = async (body) => {
   const users = await jdckUsers()
 
-  var text = '用户在线情况：\n\n'
+  var text = `总共 ${users.length} 个用户：\n\n`
   users.forEach(item => {
     const online = item.status == 0 ? '启用' : '禁用'
     const wxpusher = item.uid ? '已绑定' : '未绑定'
     const phone = item.phone ? '已绑定' : '未绑定'
-    const time = new Date(item.updatedAt ?? '').toLocaleString()
+    const time = dateFormatterCN(item.updatedAt)
     text += `用户：${item.pt_pin}\n状态：${online}\n备注：${item.remarks}\n微信：${wxpusher}\n手机：${phone}\n更新时间：${time}\n\n`
   })
 
@@ -190,15 +201,19 @@ const ck_online = async (data) => {
 }
 
 // CK离线情况
-const ck_offline = async (data) => {
+const ck_offline = async (body) => {
   var users = await jdckUsers()
+  let total = users.length
   users = users.filter(item => item.status != 0)
+  if (users.length == 0) {
+    return `总共 ${total} 个用户，暂时没有离线用户`
+  }
 
-  var text = '用户离线情况：\n\n'
+  var text = `总共 ${total} 个用户, 共 ${users.length} 个用户离线：\n\n`
   users.forEach(item => {
     const wxpusher = item.uid ? '已绑定' : '未绑定'
     const phone = item.phone ? '已绑定' : '未绑定'
-    const time = new Date(item.updatedAt ?? '').toLocaleString()
+    const time = dateFormatterCN(item.updatedAt)
     text += `用户：${item.pt_pin}\n备注：${item.remarks}\n微信：${wxpusher}\n手机：${phone}\n更新时间：${time}\n\n`
   })
 
@@ -236,9 +251,9 @@ const runTask = async (id = '') => {
 }
 
 // 自定义指令，当前只支持青龙 task
-const task = async (data = {}) => {
-  const { name, command } = data
-  const schedule = data.schedule || '1 1 29 2 *'
+const task = async (body = {}) => {
+  const { name, command } = body
+  const schedule = body.schedule || '1 1 29 2 *'
   log.info(`bot 开始执行自定义指令：${command}`)
 
   // 是否存在缓存
@@ -303,13 +318,13 @@ exports.custom = async (cmd = {}, uid = '') => {
   // 同一个uid下绑定的用户
   var currentUsers = users.filter(item => item.uid == uid)
   if (currentUsers.length < param) {
-    return `指令参数错误，当前只有 ${currentUsers.length} 个账号可用`
+    return `指令序号错误，当前只有 ${currentUsers.length} 个账号可用`
   }
 
   const user = currentUsers[param - 1]
   // 所有在线用户，最终的 desi 序号从这里产生
   const allOnlineUsers = users.filter(item => item.status == 0)
-  const num = allOnlineUsers.findIndex(item => item.uid == uid)
+  const num = allOnlineUsers.findIndex(item => item.id == user.id)
   if (num < 0) {
     return '指定账号不在线，请重新登录后，再执行指令'
   }
@@ -317,54 +332,6 @@ exports.custom = async (cmd = {}, uid = '') => {
   // name: 任务名+uid 作为唯一标识
   name += `@@${uid}`
   return await task({ name, command: `${command} ${num + 1}`, schedule })
-
-  // // 解析参数
-  // // param: 1或者 n-m 或者 没有参数
-  // let start = 0, end = 0
-  // if (!param || param == '1') {
-  //   start = 0
-  //   end = 0
-  // }
-  // else if (param.includes('-')) {
-  //   const arr = param.split('-')
-  //   start = parseInt(arr[0] ?? 0)
-  //   end = parseInt(arr[1] ?? 0)
-  // }
-
-  // var users = await jdckUsers()
-  // var user = findJDCKUser(users, uid)
-  // if (!user) {
-  //   return '未查询到相关信息，请确保已经绑定微信推送，并关注公众号(wxpusher)后再试'
-  // }
-
-  // // 所有在线用户，最终的 desi 序号从这里产生
-  // const allOnlineUsers = users.filter(item => item.status == 0)
-  // // 指定用户
-  // users = allOnlineUsers.filter(item => item.uid == uid)
-  // if (users.length == 0) {
-  //   return '用户未登录，请重新登录，再执行指令'
-  // }
-
-  // var nums = new Array()
-  // if (start == 0 || end == 0) {
-  //   // 默认第一个
-  //   const index = allOnlineUsers.findIndex(item => item.uid == uid)
-  //   nums.push(index + 1)
-  // }
-  // else {
-  //   start = Math.min(start, users.length)
-  //   end = Math.min(end, users.length)
-  //   end = Math.max(end, start)
-  //   for (var i = start; i <= end; i++) {
-  //     const user = users[i - 1]
-  //     const index = allOnlineUsers.findIndex(item => item.id == user.id)
-  //     nums.push(index + 1)
-  //   }
-  // }
-
-  // // name: 任务名+uid 作为唯一标识
-  // name += `@@${uid}`
-  // return await task({ name, command: `${command} ${nums.join(',')}`, schedule })
 }
 
 // 服务器启动20秒后，开始缓存已经存在的自定义指令
