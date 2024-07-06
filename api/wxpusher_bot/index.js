@@ -4,7 +4,7 @@ const adminUID = wxpusher.uid
 const tail = `\n\n by: @${wxpusher_bot.bot_name}\n`
 
 const guideTip = (isAdmin = false) => {
-  var tip = ''
+  var tip = `${wxpusher_bot.bot_tip}\n\n`
 
   tip += '内部指令: \n\n'
   wxpusher_bot.internal.forEach(cmd => {
@@ -40,17 +40,19 @@ exports.bot = async (data = {}) => {
 
   var desp = '', text = '点击查看结果'
   if (isGuideCMD(content)) {
+    text = wxpusher_bot.guide.desc
     desp = guideTip(isAdmin)
   }
   else {
-    var cmd = wxpusher_bot.internal.find(cmd => content.startsWith(cmd.name))
+    const cmdName = content.split(' ')[0] || ''
+    var cmd = wxpusher_bot.internal.find(cmd => cmdName.startsWith(cmd.name))
     if (cmd) {
       cmd.content = content
       desp = await bot_cmd.internal(cmd, uid)
       text = desp
     }
     else {
-      cmd = wxpusher_bot.custom.find(cmd => content.startsWith(cmd.name))
+      cmd = wxpusher_bot.custom.find(cmd => cmdName.startsWith(cmd.name))
       if (cmd) {
         cmd.content = content
         desp = await bot_cmd.custom(cmd, uid)
