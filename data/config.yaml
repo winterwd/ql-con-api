@@ -50,7 +50,7 @@ wxpusher_bot:
     - desc: 短信登录
       name: 登录
       run: login_jd_sms
-      example: 登录 <code> or 登录 <code> n
+      example: 登录 [code] or 登录 [code] n
 
     - desc: 查询当前所有账号信息
       name: 账号
