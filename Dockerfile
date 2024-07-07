@@ -10,6 +10,8 @@ COPY package*.json ./
 # 安装 app 依赖
 # 使用 --only=production 来只安装生产环境的依赖，如果项目不需要分开管理依赖则可以忽略该参数
 RUN npm install
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' > /etc/timezone
 
 # 将项目代码复制到容器中
 COPY . .
