@@ -124,6 +124,15 @@ class JDCK {
     try {
       // sendSms接口中的user参数
       log.info(`「3」jdck checkCode 手机:${user.mobile ?? ''}, smscode:${smscode}`)
+      const { mobile, gsalt, guid, lsid } = user
+      if (!mobile || !gsalt || !guid || !lsid) {
+        log.info('「4」jdck checkCode 短信登录:参数不全')
+        return {
+          code: 400,
+          message: '参数不全, 请联系管理员'
+        }
+      }
+      
       const path = rootDir + '/api/jdck/checkCode.js'
       const res = await executeScript(path, [
         `smscode=${smscode}`,
@@ -200,7 +209,16 @@ class JDCK {
     }
 
     log.info('jdck mock checkCode body:' + JSON.stringify(user))
-    const { mobile } = user
+    const { mobile, gsalt, guid, lsid } = user
+
+    if (!mobile || !gsalt || !guid || !lsid) {
+      log.info('jdck mock checkCode message: mock 参数不全')
+      return {
+        code: 400,
+        message: 'mock 参数不全'
+      }
+    }
+
     const ck = `pt_key=AAJmcBOmAcsdkguksdkgkgGUIGdddHK23874592KHKOmADDPeB;pt_pin=jd_mock_${mobile};`;
     return {
       code: 200,

@@ -34,6 +34,9 @@ const bind_jd_phone = async (body = {}) => {
 
   var users = await jdckUsers()
   users = users.filter(item => item.uid == uid)
+  if (users.length == 0) {
+    return '当前尚未绑定微信推送, 请先在网页上绑定后，再执行指令'
+  }
   if (users.length < num) {
     return '指令序号不对，请重新输入'
   }
@@ -91,6 +94,9 @@ const send_jd_sms = async (body = {}) => {
 
   var users = await jdckUsers()
   users = users.filter(item => item.uid == uid)
+  if (users.length == 0) {
+    return '当前尚未绑定微信推送, 请先在网页上绑定后，再执行指令'
+  }
   if (users.length < num) {
     return '指令序号不对，请重新输入'
   }
@@ -145,6 +151,9 @@ const login_jd_sms = async (body = {}) => {
   let num = parseInt(param[1]) || 1
   var users = await jdckUsers()
   users = users.filter(item => item.uid == uid)
+  if (users.length == 0) {
+    return '当前尚未绑定微信推送, 请先在网页上绑定后，再执行指令'
+  }
   if (users.length < num) {
     return '指令序号不对，请重新输入'
   }
@@ -162,17 +171,19 @@ const login_jd_sms = async (body = {}) => {
     return '验证码未发送或已失效，请重新发送'
   }
 
-  const { message } = await login_jd_sms_api({ smscode, user })
+  const { message } = await login_jd_sms_api({ smscode, user:last.data })
   // 校验登录结束，移除缓存
   removeInvaildJDSMS(key)
   return message
-
 }
 
 const ck_info = async (body) => {
   const uid = body.uid ?? ''
   var users = await jdckUsers()
   users = users.filter(item => item.uid == uid)
+  if (users.length == 0) {
+    return '当前尚未绑定微信推送, 请先在网页上绑定后，再执行指令'
+  }
 
   var text = '用户信息列表：\n\n'
   users.forEach((item, index) => {
@@ -317,6 +328,9 @@ exports.custom = async (cmd = {}, uid = '') => {
   var users = await jdckUsers()
   // 同一个uid下绑定的用户
   var currentUsers = users.filter(item => item.uid == uid)
+  if (currentUsers.length == 0) {
+    return '当前尚未绑定微信推送, 请先在网页上绑定后，再执行指令'
+  }
   if (currentUsers.length < param) {
     return `指令序号错误，当前只有 ${currentUsers.length} 个账号可用`
   }
