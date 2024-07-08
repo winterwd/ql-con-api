@@ -7,6 +7,10 @@ WORKDIR /jdck
 # 复制 package.json 和 package-lock.json (如果存在)
 COPY package*.json ./
 
+# 设置时区
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # 安装 app 依赖
 # 使用 --only=production 来只安装生产环境的依赖，如果项目不需要分开管理依赖则可以忽略该参数
 RUN npm install
