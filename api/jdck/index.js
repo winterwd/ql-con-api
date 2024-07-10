@@ -1,24 +1,5 @@
-const { execFile } = require('child_process')
-const rootDir = require('../../utils/rootDir')
 const log = require('../../utils/log_util')
-
-/**
- * 执行外部脚本并获取其输出
- * @param {string} scriptPath - 脚本文件路径
- * @param {string[]} [args=[]] - 脚本参数数组
- * @returns {Promise<string>} - 脚本输出
- */
-const executeScript = (scriptPath, args = []) => {
-  return new Promise((resolve, reject) => {
-    execFile('node', [scriptPath, ...args], (error, stdout, stderr) => {
-      if (error) {
-        reject(`Error: ${stderr}`);
-      } else {
-        resolve(stdout.trim());
-      }
-    });
-  });
-};
+const JDLib = require('./dejdLib')
 
 class JDCK {
   constructor() {
@@ -40,7 +21,7 @@ class JDCK {
     }
   }
 
-  async sendSms (ctx, next) {
+  async sendSms(ctx, next) {
     await next()
     const phone = ctx.request.query.phone ?? ''
     ctx.body = await this.realSendSms(phone)
@@ -86,9 +67,7 @@ class JDCK {
     try {
       log.info('「1」jdck sendSms 手机号:' + phone)
       // sendSms接口中的user参数
-      const path = rootDir + '/api/jdck/sendSms.js'
-      var res = await executeScript(path, [`phone=${phone}`]);
-      res = JSON.parse(res)
+      const res = await JDLib.sendSms(phone);
       log.info('「2」jdck sendSms 短信发送:' + res.message)
       return res
     } catch (error) {
@@ -120,16 +99,8 @@ class JDCK {
           message: '参数不全, 请联系管理员'
         }
       }
-      
-      const path = rootDir + '/api/jdck/checkCode.js'
-      const res = await executeScript(path, [
-        `smscode=${smscode}`,
-        `phone=${user.mobile ?? ''}`,
-        `gsalt=${user.gsalt ?? ''}`,
-        `guid=${user.guid ?? ''}`,
-        `lsid=${user.lsid ?? ''}`
-      ]);
-      const ret = JSON.parse(res)
+
+      const ret = await JDLib.checkCode({ ...user, smscode });
       log.info('「4」jdck checkCode 短信登录:' + ret.message)
       console.log('checkCode res:', ret)
       return ret
