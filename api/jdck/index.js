@@ -8,18 +8,6 @@ const log = require('../../utils/log_util')
  * @param {string[]} [args=[]] - 脚本参数数组
  * @returns {Promise<string>} - 脚本输出
  */
-// const executeScript = (scriptPath, args = []) => {
-//   return new Promise((resolve, reject) => {
-//     const command = `node ${scriptPath} ${args.join(' ')}`;
-//     exec(command, (error, stdout, stderr) => {
-//       if (error) {
-//         reject(`Error: ${stderr}`);
-//       } else {
-//         resolve(stdout.trim());
-//       }
-//     });
-//   });
-// };
 const executeScript = (scriptPath, args = []) => {
   return new Promise((resolve, reject) => {
     execFile('node', [scriptPath, ...args], (error, stdout, stderr) => {
