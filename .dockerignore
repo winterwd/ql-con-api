@@ -3,4 +3,10 @@ npm-debug.log
 .vscode
 .DS_Store
 .git*
+.tar
+.gz
 README.md
+logs
+obfuscate.js
+build.sh
+dist
