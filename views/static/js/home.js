@@ -9,19 +9,58 @@ class User {
     this.hasCode = false
     this.ck = ''
     this.submitSuccess = false
+    this.status = ''
   }
 }
 let user;
 
 document.addEventListener('DOMContentLoaded', DOMContentLoaded)
 function DOMContentLoaded(params) {
-  // 打开这个页面就清除本地缓存的ck
-  // localStorage.removeItem('ck')
-  // localStorage.removeItem('ckExpired')
-  const mobile = localStorage.getItem("mobile")
-  if (mobile) {
-    document.getElementById('inputPhone').value = mobile
+
+  // 获取 localStorage 中的 ck
+  const ck = localStorage.getItem("ck");
+  if (ck) {
+    const ckData = formatCKData(ck);
+    fetchViewLabelData(ckData.pt_pin);
   }
+  else {
+    const mobile = localStorage.getItem("mobile")
+    if (mobile) {
+      document.getElementById('inputPhone').value = mobile
+    }
+  }
+}
+
+function formatCKData(ck = '') {
+  // ck: "pt_key=xxx;pt_pin=xxx;"
+  //取出 pt_key 和 pt_pin
+  const temp = ck.split(';');
+  const pt_pin = temp[1].split('=')[1];
+  return { pt_pin }
+}
+
+function fetchViewLabelData(pt_pin = '') {
+  showLoading('titleBar', false)
+  const url = 'api/ql/jdck?pt_pin=' + pt_pin;
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(res => res.json())
+    .then(res => {
+      if (res.code == 200) {
+        user = new User()
+        user.status = res.data.status ? `${res.data.status}` : ''
+      }
+    })
+    .finally(res => {
+      hideLoading('titleBar')
+      if (user && user.status) {
+        window.location.href = "/info";
+      }
+    })
 }
 
 // 获取验证码
@@ -31,7 +70,7 @@ function getCode() {
 
   const phoneRegex = /^1[3-9]\d{9}$/;
   if (!phoneRegex.test(phone)) {
-    alert('手机号格式错误')
+    Toast('手机号格式错误')
     return
   }
 
@@ -56,8 +95,11 @@ function getCode() {
         user.lsid = res.data.lsid
         user.mobile = res.data.mobile
         user.hasCode = true
+        Toast(res.message)
       }
-      alert(res.message)
+      else {
+        alert(res.message)
+      }
     })
     .catch(error => {
       // console.log(error)
@@ -116,14 +158,14 @@ function clearCountdown() {
 // 校验验证码
 function checkCode() {
   if (!user || !user.hasCode) {
-    alert('请先获取验证码')
+    Toast('请先获取验证码')
     return
   }
 
   const smscode = document.getElementById('inputSmsCode').value
   const regex = /^\d{6}$/;
   if (!regex.test(smscode)) {
-    alert('验证码格式不正确')
+    Toast('验证码格式不正确')
     return
   }
 
@@ -145,9 +187,9 @@ function checkCode() {
   })
     .then(res => res.json())
     .then(res => {
-      user.ck = res.data.ck ?? ''
       let message = res.message
       if (res.code == 200) {
+        user.ck = res.data.ck ?? ''
         user.submitSuccess = true
         message = "恭喜你，上车成功～\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!"
       }
@@ -214,9 +256,6 @@ function retrySubmit() {
 function submitSuccess() {
   localStorage.setItem('ck', user.ck)
   localStorage.setItem('mobile', user.mobile)
-  // 暂定：过期时间为 24 小时
-  const ckExpired = Date.now() + 1000 * 60 * 60 * 24
-  localStorage.setItem('ckExpired', ckExpired)
 
   // console.log('redirect to /info')
   window.location.href = '/info'
@@ -241,4 +280,20 @@ function hideLoading(id = '') {
   button.disabled = false;
   button.classList.remove('loading');
   button.innerHTML = button.innerText;
+}
+
+//界面toast提示
+/*使用方法 Toast('这是一个弹框',2000)*/
+function Toast(msg, duration) {
+  duration = isNaN(duration) ? 2000 : duration;
+
+  var toastNode = document.createElement('div');
+  toastNode.innerHTML = `<span class="text">${msg}</span>`;
+  toastNode.setAttribute('class', 'toast');
+  toastNode.style.display = 'block';
+  document.body.appendChild(toastNode);
+
+  setTimeout(function () {
+    document.body.removeChild(toastNode);
+  }, duration);
 }

@@ -7,14 +7,14 @@ body {
   display: flex;
   justify-content: center;
   box-sizing: border-box;
-  width:100%;
+  width: 100%;
   height: auto;
 }
 
 .body-container {
   width: 100%;
   margin: auto;
-  flex-shrink:0;
+  flex-shrink: 0;
 }
 
 @media (min-width: 500px) {
@@ -340,4 +340,27 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+.toast {
+  position: absolute;
+  display: none;
+  left: 50%;
+  top: 10%;
+  z-index: 9999;
+  margin: auto;
+  padding: 10px 16px;
+  transform: translate(-50%, -50%);
+  min-width: 120px;
+  max-width: 70%;
+  height: auto;
+  line-height: 24px;
+  border-radius: 6px;
+  text-align: center;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.text {
+  white-space: pre-wrap;
 }

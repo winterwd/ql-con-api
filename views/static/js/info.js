@@ -14,18 +14,21 @@ document.addEventListener('DOMContentLoaded', DOMContentLoaded)
 function DOMContentLoaded(params) {
   // 获取 localStorage 中的 ck
   const ck = localStorage.getItem("ck");
-  const ckExpired = localStorage.getItem("ckExpired");
-  if (!ck || !ckExpired || ckExpired < Date.now()) {
-    // 没有数据或者过期
-    window.location.href = "/home";
-    return
+  if (ck) {
+    const ckData = formatCKData(ck);
+    fetchViewLabelData(ckData.pt_pin);
   }
-
-  const ckData = formatCKData(ck);
-  fetchViewLabelData(ckData.pt_pin);
+  else {
+    gotoHome();
+  }
 }
 
-function fetchViewLabelData(pt_pin='') {
+function gotoHome() {
+  localStorage.removeItem('ck')
+  window.location.href = "/home";
+}
+
+function fetchViewLabelData(pt_pin = '') {
   showLoading('titleBar', false)
   const url = 'api/ql/jdck?pt_pin=' + pt_pin;
   fetch(url, {
@@ -40,13 +43,12 @@ function fetchViewLabelData(pt_pin='') {
         const data = res.data
         updateViewLabelData(data)
       }
-      else {
-        console.log(res.message)
-        alert(res.message)
-      }
     })
     .finally(res => {
       hideLoading('titleBar')
+      if (userInfo == undefined) {
+        gotoHome();
+      }
     })
 }
 
@@ -59,7 +61,7 @@ function updateViewLabelData(data) {
     id,
     status
   } = data
-  
+
   userInfo = new UserInfo()
   userInfo.pt_pin = pt_pin
   userInfo.remarks = remarks
@@ -69,6 +71,7 @@ function updateViewLabelData(data) {
 
   const pt_pin_text = pt_pin
   const remark_text = remarks
+  const stausText = status == 0 ? "在线" : "离线"
   let notify_text = "暂未绑定微信推送"
 
   let openWxPusherTxt = "绑定微信"
@@ -81,6 +84,7 @@ function updateViewLabelData(data) {
   document.getElementById("remarkLabel").innerText = remark_text
   document.getElementById("notifyLabel").innerText = notify_text
   document.getElementById("openWxPusher").innerText = openWxPusherTxt
+  document.getElementById("statusLabel").innerText = stausText
 }
 
 function openRemarkModal() {
@@ -98,7 +102,7 @@ function saveRemark() {
   saveUserRemark(remark);
 }
 
-function saveUserRemark(remark='') {
+function saveUserRemark(remark = '') {
   const url = 'api/ql/remarks';
   const data = {
     "pt_pin": userInfo.pt_pin,
@@ -116,7 +120,7 @@ function saveUserRemark(remark='') {
     .then(res => res.json())
     .then(res => {
       if (res.code == 200) {
-        alert("备注已更新");
+        Toast("备注已更新");
       }
       else {
         console.log(res.message)
@@ -164,7 +168,6 @@ function fetchWxPusherData() {
         updateWxPusherData(data)
       }
       else {
-        console.log(res.message)
         alert(res.message)
       }
     })
@@ -174,7 +177,7 @@ function fetchWxPusherData() {
 }
 
 function updateWxPusherData(data) {
-  const {url} = data
+  const { url } = data
   document.getElementById("WxPusherQRCode").src = url
   document.getElementById("notifyModal").style.display = "block";;
 }
@@ -223,4 +226,18 @@ function hideLoading(id = '', disabled = false) {
   element.disabled = disabled;
   element.classList.remove('loading');
   element.innerHTML = element.innerText;
+}
+
+function Toast(msg, duration) {
+  duration = isNaN(duration) ? 2000 : duration;
+
+  var toastNode = document.createElement('div');
+  toastNode.innerHTML = `<span class="text">${msg}</span>`;
+  toastNode.setAttribute('class', 'toast');
+  toastNode.style.display = 'block';
+  document.body.appendChild(toastNode);
+
+  setTimeout(function () {
+    document.body.removeChild(toastNode);
+  }, duration);
 }

@@ -17,7 +17,6 @@ home.get('/', homeView)
 // info
 const info = new Router()
 info.get('/', async (ctx) => {
-  console.log('start info view')
   await ctx.render('info', { title })
 })
 
