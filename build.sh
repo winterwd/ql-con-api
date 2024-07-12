@@ -38,20 +38,24 @@ cp ./dist/$JS_CODE_PATH ./$JS_CODE_PATH
 
 tar -czf archive.tar.gz node_modules
 
+restoreCode() {
+  # 还原代码
+  git restore ./$JS_CODE_PATH
+  rm -f archive.tar.gz
+}
+
 # 构建镜像
 PLATFORMS="linux/amd64,linux/arm64"
 echo -e "${YELLOW}正在为 ${PLATFORMS} 构建...${NC}"
 docker buildx build --platform ${PLATFORMS} -t ${IMAGE_FULL_NAME}:${IMAGE_TAG} --push .
 
 if [ $? -ne 0 ]; then
+  restoreCode
   echo -e "${RED}构建 ${PLATFORMS} 镜像失败。退出。${NC}"
   exit 1
 fi
 
-# 还原代码
-git restore ./$JS_CODE_PATH
-rm -f archive.tar.gz
-
+restoreCode
 # 创建latest
 echo -e "${YELLOW}正在创建 latest ...${NC}"
 docker buildx imagetools create -t ${IMAGE_FULL_NAME}:latest ${IMAGE_FULL_NAME}:${IMAGE_TAG}
