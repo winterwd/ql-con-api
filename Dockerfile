@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8864
 
 # 告诉 Docker 启动容器时运行什么命令
-CMD ["sh", "-c", "rm -rf node_modules && mkdir node_modules && tar -xzf archive.tar.gz -C node_modules && node index.js"]
+CMD ["sh", "-c", "rm -rf node_modules && mkdir node_modules && tar -xzf archive.tar.gz -C node_modules && npm install && node index.js"]
