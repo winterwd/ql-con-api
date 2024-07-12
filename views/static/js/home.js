@@ -52,7 +52,7 @@ function fetchViewLabelData(pt_pin = '') {
     .then(res => {
       if (res.code == 200) {
         user = new User()
-        user.status = res.data.status ? `${res.data.status}` : ''
+        user.status = res.data.id > 0
       }
     })
     .finally(res => {
