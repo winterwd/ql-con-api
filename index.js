@@ -6,6 +6,7 @@ const app = new Koa()
 const logger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
 
+const log = require('./utils/log_util')
 const { site } = require('./utils/config')
 const ApiRouter = require('./api/index')
 const ViewsRouter = require('./views/router/index')
@@ -67,8 +68,9 @@ app.use(logger())
 
 /** 启动服务、监听端口 */
 app.listen(port, () => {
-  console.log('=======================================================');
-  console.log(require('alphabetjs')('JDCK', 'stereo'))
-  console.log(`JDCK (${site.version}) 服务已经启动 ${host}:${port}`);
-  console.log('\n=======================================================');
+  let text = '\n\n=======================================================\n';
+  text += `${require('alphabetjs')('JDCK', 'stereo')}\n`;
+  text += `JDCK (${site.version}) 服务已经启动 ${host}:${port}\n`;
+  text += '\n=======================================================\n';
+  log.info(text);
 })
