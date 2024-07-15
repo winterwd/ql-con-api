@@ -6,6 +6,7 @@ npm-debug.log
 .tar
 .gz
 README.md
+Dockerfile
 logs
 obfuscate.js
 build.sh

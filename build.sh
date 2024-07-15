@@ -36,12 +36,9 @@ JS_CODE_PATH='api/jdck/dejdLib.js'
 echo -e "${YELLOW}正在复制代码...${NC}"
 cp ./dist/$JS_CODE_PATH ./$JS_CODE_PATH
 
-tar -czf archive.tar.gz node_modules
-
 restoreCode() {
   # 还原代码
   git restore ./$JS_CODE_PATH
-  rm -f archive.tar.gz
 }
 
 # 构建镜像

@@ -12,9 +12,10 @@ RUN echo 'Asia/Shanghai' > /etc/timezone
 
 # 将项目代码复制到容器中
 COPY . .
+RUN npm install --only=production
 
 # 你的应用绑定的端口，确保与你的 app 监听的端口一致
 EXPOSE 8864
 
 # 告诉 Docker 启动容器时运行什么命令
-CMD ["sh", "-c", "rm -rf node_modules && mkdir node_modules && tar -xzf archive.tar.gz -C node_modules && npm install && node index.js"]
+CMD ["node", "index.js"]
