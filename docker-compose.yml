@@ -1,0 +1,11 @@
+services:
+  jdck:
+    image: alalakaka/jdck:latest
+    container_name: jdck
+    volumes:
+      - .:/jdck/data
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "8864:8864"
+    restart: unless-stopped
