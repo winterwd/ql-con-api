@@ -1,8 +1,11 @@
-version: v1
 # 站点设置
 site:
   # 网站名称
   site_name: 薅豆车
+  # 是否开启日志
+  log_enable: true
+  # 日志默认保留天数
+  log_days: 7
 
 # 青龙配置
 qinglong:
