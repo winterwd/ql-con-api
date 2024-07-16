@@ -503,7 +503,8 @@ class QLAPI {
       const { uid, phone, nickname: remarks } = parseJDCKRemarks(item.remarks)
       return {
         id: item.id,
-        pt_pin,
+        // 兼容中文
+        pt_pin: decodeURIComponent(pt_pin),
         remarks,
         phone,
         uid: uid ?? '',
