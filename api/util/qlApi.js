@@ -301,6 +301,11 @@ class Api {
           obj = ck
           break
         }
+        // 兼容 pt_pin 中包含中文的情况
+        else if (ck.value.includes(encodeURIComponent(pt_pin))) {
+          obj = ck;
+          break;
+        }
       }
     }
 
