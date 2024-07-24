@@ -188,10 +188,13 @@ function checkCode() {
     .then(res => res.json())
     .then(res => {
       let message = res.message
+      user.ck = res.data.ck ?? ''
       if (res.code == 200) {
-        user.ck = res.data.ck ?? ''
         user.submitSuccess = true
         message = "恭喜你，上车成功～\n\n关闭免密支付!\n关闭免密支付!\n关闭免密支付!"
+      }
+      else if (user.ck) {
+        message += `, 请点击下方'重新提交'`
       }
       alert(message)
     })

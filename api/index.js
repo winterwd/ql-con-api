@@ -120,7 +120,7 @@ router.post('/jd/checkCode', apiLimiter, async (ctx, next) => {
     // jd 短信登录成功后提交CK
     const ckRes = await qlApi._submitCK(data.ck)
     if (ckRes.code !== 200) {
-      ckRes.message = "提交失败, 请点击下方'重新提交'"
+      ckRes.message = "CK 提交失败"
     }
     // 将登录的 CK 传下去
     ckRes.data = data

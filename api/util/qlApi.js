@@ -202,11 +202,19 @@ class Api {
           const nickname = findNickname(user.remarks)
           this.sendNotify(`用户:${nickname},更新CK啦`, `亲爱的车主，用户: “${nickname}” 更新 CK 了`)
 
+          let message = 'CK 更新成功'
           if (String(user.status) === '1') {
             log.info('submitCK status 当前未启用，开始启用...')
             // 若status状态为1，表示被禁用，需启用此变量
             res = await ql.enableEnvs(token, [user.id])
             log.info('submitCK status 启用 ' + (res.code == 200 ? '成功' : '失败'))
+            if (res.code == 200) {
+              message += ', 启用成功'
+            }
+            else {
+              message += ', 启用失败'
+            }
+            res.message = message
           }
         }
         else {
