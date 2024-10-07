@@ -434,6 +434,19 @@ class Api {
       return this.error
     }
   }
+
+  async deleteCronTask(id) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.deleteCronTask(token, id)
+      }
+      return this.error
+    } catch (error) {
+      log.error('deleteCronTask error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
 }
 
 const api = new Api()
@@ -545,6 +558,10 @@ class QLAPI {
 
   static async _runCronTask(id) {
     return await api.runCronTask(id)
+  }
+
+  static async _deleteCronTask(id) {
+    return await api.deleteCronTask(id)
   }
 }
 

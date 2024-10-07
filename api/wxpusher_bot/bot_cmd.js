@@ -290,21 +290,34 @@ const task = async (body = {}) => {
     }
   }
   else {
-    // 存在缓存，尝试更新，可作为检查任务是否存在，也一并更新
-    const cronData = {
-      id: taskId,
-      schedule,
-      command
-    }
-    const { code, message } = await qlApi._updateCronTask(cronData)
-    // code:500, message: "Cron {\"id\":2830} not found"
-    if ((code == 500) && message.includes('not found')) {
+    // // 存在缓存，尝试更新，可作为检查任务是否存在，也一并更新
+    // const cronData = {
+    //   id: taskId,
+    //   schedule,
+    //   command
+    // }
+    // const { code, message } = await qlApi._updateCronTask(cronData)
+    // // code:500, message: "Cron {\"id\":2830} not found"
+    // if ((code == 500) && message.includes('not found')) {
+    //   qlTaskMap[taskName] = -1
+    //   return await task(data)
+    // }
+    // else {
+    //   // 更新成功
+    //   return await runTask(taskId)
+    // }
+
+    // 缓存存在，先删除，再创建
+    const { code, message } = await qlApi._deleteCronTask(taskId)
+    if (code == 200) {
       qlTaskMap[taskName] = -1
+      // 等待一下
+      await sleep(500)
       return await task(data)
     }
     else {
-      // 更新成功
-      return await runTask(taskId)
+      log.error('bot 自定义指删除失败 task error = ' + message)
+      return '任务创建失败, 请联系管理员'
     }
   }
 }

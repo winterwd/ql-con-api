@@ -31,15 +31,15 @@ function requestOptions(url, token, body) {
 const someApiRequest = async (options = {}) => {
   return new Promise((resolve, reject) => {
     request(options, function (error, response, body) {
-      if (error) {
-        reject(error)
+      if (response.statusCode != 200) {
+        reject({ code: response.statusCode, message: '接口异常' })
       }
       else {
         try {
           const result = JSON.parse(body) ?? { code: 400, message: '接口异常' }
           resolve(result)
         } catch (error) {
-          reject(error)
+          reject({ code: 400, message: error.message })
         }
       }
     })
@@ -307,6 +307,27 @@ function updateCronTask(token = '', body = {}) {
   return someApiRequest(options);
 }
 
+
+/**
+ * 删除定时任务
+ * @param {*} token 
+ * @param {*} id 
+ */
+function deleteCronTask(token = '', id = -1) {
+  log.info('删除 定时任务 id = ' + id)
+  if (isEmptyString(token)) {
+    return { code: 400, message: '删除青龙环境变量失败' }
+  }
+  if (id == -1) {
+    return { code: 400, message: '失败, id 为空' }
+  }
+
+  let url = ql_addrUrl + "/crons"
+  let options = requestOptions(url, token, body = [id])
+  options.method = 'DELETE'
+  return someApiRequest(options);
+}
+
 class QL {
   constructor() {
     this.login = login
@@ -321,6 +342,7 @@ class QL {
     this.searchCronTask = searchCronTask
     this.createCronTask = createCronTask
     this.updateCronTask = updateCronTask
+    this.deleteCronTask = deleteCronTask
   }
 }
 
