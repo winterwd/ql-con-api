@@ -311,19 +311,19 @@ function updateCronTask(token = '', body = {}) {
 /**
  * 删除定时任务
  * @param {*} token 
- * @param {*} id 
+ * @param {*} ids
  */
-function deleteCronTask(token = '', id = -1) {
-  log.info('删除 定时任务 id = ' + id)
+function deleteCronTask(token = '', ids = []) {
+  log.info('删除 定时任务 ids = ' + ids)
   if (isEmptyString(token)) {
     return { code: 400, message: '删除青龙环境变量失败' }
   }
-  if (id == -1) {
-    return { code: 400, message: '失败, id 为空' }
+  if (ids.length == 0) {
+    return { code: 400, message: '失败, ids 为空' }
   }
 
   let url = ql_addrUrl + "/crons"
-  let options = requestOptions(url, token, body = [id])
+  let options = requestOptions(url, token, body = ids)
   options.method = 'DELETE'
   return someApiRequest(options);
 }

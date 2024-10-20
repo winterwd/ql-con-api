@@ -271,6 +271,7 @@ const task = async (body = {}) => {
   const taskName = `${CmdPrefix}${name}`
   let taskId = qlTaskMap[taskName] ?? -1
   if (taskId == -1) {
+    // 不存在缓存，创建
     const cronData = {
       name: taskName,
       schedule,
@@ -281,6 +282,8 @@ const task = async (body = {}) => {
       // 创建成功
       taskId = data.id
       qlTaskMap[taskName] = taskId
+      // 等待一下
+      await sleep(500)
       return await runTask(taskId)
     }
     else {
@@ -308,12 +311,13 @@ const task = async (body = {}) => {
     // }
 
     // 缓存存在，先删除，再创建
-    const { code, message } = await qlApi._deleteCronTask(taskId)
+    const { code, message } = await qlApi._deleteCronTask([taskId])
     if (code == 200) {
       qlTaskMap[taskName] = -1
       // 等待一下
       await sleep(500)
-      return await task(data)
+      // 重新创建
+      return await task(body)
     }
     else {
       log.error('bot 自定义指删除失败 task error = ' + message)

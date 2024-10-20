@@ -435,11 +435,11 @@ class Api {
     }
   }
 
-  async deleteCronTask(id) {
+  async deleteCronTask(ids=[]) {
     try {
       const token = await this.getToken()
       if (token) {
-        return await ql.deleteCronTask(token, id)
+        return await ql.deleteCronTask(token, ids)
       }
       return this.error
     } catch (error) {
@@ -560,8 +560,8 @@ class QLAPI {
     return await api.runCronTask(id)
   }
 
-  static async _deleteCronTask(id) {
-    return await api.deleteCronTask(id)
+  static async _deleteCronTask(ids) {
+    return await api.deleteCronTask(ids)
   }
 }
 
