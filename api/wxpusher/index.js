@@ -45,6 +45,121 @@ async function fetchWxPusherQRCode(extra = '') {
   })
 }
 
+/**
+ * 删除用户
+ * @param {string} [uid='']
+ * https://wxpusher.zjiecode.com/api/fun/remove
+ * @return wxpusher 删除用户结果
+ */
+async function removeWxPusherUser(uid = '') {
+  if (uid == undefined || uid == '') {
+    return { code: 400, message: 'uid 不能为空' }
+  }
+
+  // 查找用户
+  const result = await getWxPusherUser(uid)
+  if (result.code != 200) {
+    return result
+  }
+
+  function _removeWxPusherUser(user) {
+    var url = 'https://wxpusher.zjiecode.com/api/fun/remove'
+    const appToken = wxpusher.appToken
+    url += '?appToken' + appToken + '&id=' + user.id
+    var options = {
+      'method': 'DELETE',
+      'url': url,
+      'headers': {
+        'Content-Type': 'application/json'
+      }
+    }
+    return new Promise((resolve, reject) => {
+      request(options,
+        function (error, response, body) {
+          if (error !== null) {
+            reject({ code: 400, message: '删除用户失败' })
+            return
+          }
+
+          const result = JSON.parse(body)
+          if (result.code == 1000) {
+            resolve({ code: 200, data: result.data, message: '删除用户成功' })
+          } else {
+            reject({ code: 400, message: result.msg })
+          }
+        })
+    })
+  }
+
+  // 删除用户
+  return _removeWxPusherUser(result.data)
+}
+
+/**
+ * 查询用户信息
+ * @param {string} [uid='']
+ * https://wxpusher.zjiecode.com/api/fun/wxuser/v2
+ * @return wxpusher 用户信息
+ */
+async function getWxPusherUser(uid = '') {
+  if (uid == undefined || uid == '') {
+    return { code: 400, message: 'uid 不能为空' }
+  }
+
+  // appToken 应用密钥标志
+  // page 请求数据的页码
+  // pageSize 分页大小，不能超过100
+  // uid 用户的uid，可选，如果不传就是查询所有用户，传uid就是查某个用户的信息。
+  // isBlock 查询拉黑用户，可选，不传查询所有用户，true查询拉黑用户，false查询没有拉黑的用户
+  // type 关注的类型，可选，不传查询所有用户，0是应用，1是主题。
+
+  // 查询用户信息
+  var url = 'https://wxpusher.zjiecode.com/api/fun/wxuser/v2'
+  const page = 1
+  const pageSize = 100
+  const appToken = wxpusher.appToken
+  url += '?uid=' + uid + '&appToken=' + appToken + '&page=' + page + '&pageSize=' + pageSize
+
+  var options = {
+    'method': 'GET',
+    'url': url,
+    'headers': {
+      'Content-Type': 'application/json'
+    },
+  }
+
+  return new Promise((resolve, reject) => {
+    request(options,
+      function (error, response, body) {
+        if (error !== null) {
+          reject({ code: 400, message: '获取用户信息失败' })
+          return
+        }
+
+        const result = JSON.parse(body)
+        if (result.code == 1000) {
+          const records = result.data.records
+          if (records.length == 0) {
+            resolve({ code: 404, data: null, message: '用户不存在' })
+          }
+          else {
+            // 一个微信用户，如果同时关注应用，主题，甚至关注多个主题，会返回多条记录
+            const tartgetName = wxpusher.tartget
+            const datas = records.filter(item => item.target == tartgetName)
+            if (datas.length == 0) {
+              resolve({ code: 404, data: null, message: '用户不存在' })
+            }
+            else {
+              resolve({ code: 200, data: datas[0], message: '用户信息获取成功' })
+            }
+          }
+        } else {
+          reject({ code: 400, message: result.msg })
+        }
+      })
+  })
+}
+
 class WxPusher {
   constructor() {
   }
@@ -130,6 +245,20 @@ class WxPusher {
   async getQRCode(extra = '') {
     try {
       const res = await fetchWxPusherQRCode(extra)
+      return res
+    } catch (error) {
+      return { code: 400, message: JSON.stringify(error) }
+    }
+  }
+
+  /**
+   * 删除用户
+   * @param {string} [uid=''] 对应青龙 CK 中的 UID
+   * @return wxpusher 删除用户结果
+   */
+  async removeUser(uid = '') {
+    try {
+      const res = await removeWxPusherUser(uid)
       return res
     } catch (error) {
       return { code: 400, message: JSON.stringify(error) }

@@ -1,4 +1,5 @@
 const qlApi = require('../util/qlApi')
+const WxPusher = require('../wxpusher/index.js')
 const log = require('../../utils/log_util.js');
 const request = require('request')
 const CmdPrefix = 'bot@@'
@@ -231,13 +232,42 @@ const ck_offline = async (body) => {
   return text
 }
 
+// 解绑当前账号wxpusher&ql
+const ck_unbind = async (body) => {
+  const uid = body.uid ?? ''
+  var users = await jdckUsers()
+  users = users.filter(item => item.uid == uid)
+  if (users.length == 0) {
+    return '当前尚未绑定微信推送, 无需解绑'
+  }
+  
+  async function removeUser(user) {
+    // 移除ql用户
+    const res2 = await qlApi._deleteEnvs([user.id])
+    log.info(`bot 移除 qlck env :${user.uid}, result = ${JSON.stringify(res2)}`)
+    // 移除wxpusher用户
+    const wxpusher = new WxPusher()
+    const res = await wxpusher.removeUser(user.uid)
+    log.info(`bot 移除 wxpusher 用户：${user.uid}, result = ${JSON.stringify(res)}`)
+  }
+
+  // 找出当前用户，解绑wxpusher，删除 ql ck
+  const user = users[0]
+  // 异步延迟 2s，等待将消息先发出去再删除
+  setTimeout(async () => {
+    await removeUser(user.uid)
+  }, 2000)
+  return '解绑成功，将不能继续薅羊毛了...'
+}
+
 const internalCMD = {
   'bind_jd_phone': bind_jd_phone,
   'send_jd_sms': send_jd_sms,
   'login_jd_sms': login_jd_sms,
   'ck_info': ck_info,
   'ck_online': ck_online,
-  'ck_offline': ck_offline
+  'ck_offline': ck_offline,
+  'ck_unbind': ck_unbind
 }
 
 // 系统内部指令

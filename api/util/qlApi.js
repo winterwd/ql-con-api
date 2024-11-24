@@ -447,6 +447,19 @@ class Api {
       return this.error
     }
   }
+
+  async deleteEnvs(ids = []) {
+    try {
+      const token = await this.getToken()
+      if (token) {
+        return await ql.deleteEnvs(token, ids)
+      }
+      return this.error
+    } catch (error) {
+      log.error('deleteEnvs error = ' + JSON.stringify(error))
+      return this.error
+    }
+  }
 }
 
 const api = new Api()
@@ -562,6 +575,10 @@ class QLAPI {
 
   static async _deleteCronTask(ids) {
     return await api.deleteCronTask(ids)
+  }
+
+  static async _deleteEnvs(ids) {
+    return await api.deleteEnvs(ids)
   }
 }
 
