@@ -391,7 +391,7 @@ class Api {
       }
       return this.error
     } catch (error) {
-      log.error('getCronTask error = ' + JSON.stringify(error))
+      log.error('searchCronTask error = ' + JSON.stringify(error))
       return this.error
     }
   }

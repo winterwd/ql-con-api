@@ -235,10 +235,19 @@ const ck_offline = async (body) => {
 // 解绑当前账号wxpusher&ql
 const ck_unbind = async (body) => {
   const uid = body.uid ?? ''
+  let index = body.param[0] || 1
+  index = parseInt(index) -1
+  if (index < 0) {
+    index = 0
+  }
+
   var users = await jdckUsers()
   users = users.filter(item => item.uid == uid)
   if (users.length == 0) {
     return '当前尚未绑定微信推送, 无需解绑'
+  }
+  if (index >= users.length) {
+    return '当前指令序号错误，请发送「账号」检查指令序号'
   }
   
   async function removeUser(user) {
@@ -252,10 +261,10 @@ const ck_unbind = async (body) => {
   }
 
   // 找出当前用户，解绑wxpusher，删除 ql ck
-  const user = users[0]
+  const user = users[index]
   // 异步延迟 2s，等待将消息先发出去再删除
   setTimeout(async () => {
-    await removeUser(user.uid)
+    await removeUser(user)
   }, 2000)
   return '解绑成功，不能继续薅羊毛了...'
 }
@@ -397,12 +406,17 @@ const cleanCacheCmd = async () => {
       }
 
       taskids = array.map(item => item.id)
-      const {code, message } = await qlApi._deleteCronTask(taskids)
-      if (code == 200) {
-        log.info(`自定义指令, 已清理 ${taskids.length} 个任务`)
+      if (taskids.length > 0) {
+        const { code, message } = await qlApi._deleteCronTask(taskids)
+        if (code == 200) {
+          log.info(`自定义指令, 已清理 ${taskids.length} 个任务`)
+        }
+        else {
+          log.error(`自定义指令, 清理任务 error = ${message}`)
+        }
       }
       else {
-        log.error(`自定义指令, 清理任务 error = ${message}`)
+        log.info(`自定义指令, 无需清理`)
       }
     } catch (error) {
       log.error('自定义指令 cleanCacheCmd error = ' + JSON.stringify(error))

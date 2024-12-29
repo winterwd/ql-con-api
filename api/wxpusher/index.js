@@ -65,7 +65,7 @@ async function removeWxPusherUser(uid = '') {
   function _removeWxPusherUser(user) {
     var url = 'https://wxpusher.zjiecode.com/api/fun/remove'
     const appToken = wxpusher.appToken
-    url += '?appToken' + appToken + '&id=' + user.id
+    url += '?appToken=' + appToken + '&id=' + user.id
     var options = {
       'method': 'DELETE',
       'url': url,
@@ -144,8 +144,8 @@ async function getWxPusherUser(uid = '') {
           }
           else {
             // 一个微信用户，如果同时关注应用，主题，甚至关注多个主题，会返回多条记录
-            const tartgetName = wxpusher.tartget
-            const datas = records.filter(item => item.target == tartgetName)
+            const targetName = wxpusher.target
+            const datas = records.filter(item => item.target == targetName)
             if (datas.length == 0) {
               resolve({ code: 404, data: null, message: '用户不存在' })
             }
