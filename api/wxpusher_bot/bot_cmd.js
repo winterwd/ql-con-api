@@ -257,7 +257,7 @@ const ck_unbind = async (body) => {
   setTimeout(async () => {
     await removeUser(user.uid)
   }, 2000)
-  return '解绑成功，将不能继续薅羊毛了...'
+  return '解绑成功，不能继续薅羊毛了...'
 }
 
 const internalCMD = {
@@ -323,23 +323,6 @@ const task = async (body = {}) => {
     }
   }
   else {
-    // // 存在缓存，尝试更新，可作为检查任务是否存在，也一并更新
-    // const cronData = {
-    //   id: taskId,
-    //   schedule,
-    //   command
-    // }
-    // const { code, message } = await qlApi._updateCronTask(cronData)
-    // // code:500, message: "Cron {\"id\":2830} not found"
-    // if ((code == 500) && message.includes('not found')) {
-    //   qlTaskMap[taskName] = -1
-    //   return await task(data)
-    // }
-    // else {
-    //   // 更新成功
-    //   return await runTask(taskId)
-    // }
-
     // 缓存存在，先删除，再创建
     const { code, message } = await qlApi._deleteCronTask([taskId])
     if (code == 200) {
@@ -395,9 +378,9 @@ exports.custom = async (cmd = {}, uid = '') => {
   return await task({ name, command: `${command} ${num + 1}`, schedule })
 }
 
-// 服务器启动20秒后，开始缓存已经存在的自定义指令
-const cacheCmd = async () => {
-  log.info('开始缓存已经存在的自定义指令')
+// 服务器启动后，开始清理已经存在的自定义指令
+const cleanCacheCmd = async () => {
+  log.info('开始清理已经存在的自定义指令')
   let { data, code, message } = await qlApi._searchCronTask(CmdPrefix)
   if (code == 200) {
     try {
@@ -413,19 +396,23 @@ const cacheCmd = async () => {
         return
       }
 
-      array.forEach(item => {
-        qlTaskMap[item.name] = item.id
-      })
-      log.info(`自定义指令, 已缓存 ${array.length} 个任务`)
+      taskids = array.map(item => item.id)
+      const {code, message } = await qlApi._deleteCronTask(taskids)
+      if (code == 200) {
+        log.info(`自定义指令, 已清理 ${taskids.length} 个任务`)
+      }
+      else {
+        log.error(`自定义指令, 清理任务 error = ${message}`)
+      }
     } catch (error) {
-      log.error('自定义指令 cacheCmd error = ' + JSON.stringify(error))
+      log.error('自定义指令 cleanCacheCmd error = ' + JSON.stringify(error))
     }
   }
   else {
-    log.error('自定义指令 cacheCmd error = ' + message)
+    log.error('自定义指令 cleanCacheCmd error = ' + message)
   }
 }
 
 const seconds = 15
-setTimeout(cacheCmd, seconds * 1000)
-log.info(`${seconds}秒后，开始缓存已经存在的自定义指令`)
+setTimeout(cleanCacheCmd, seconds * 1000)
+log.info(`${seconds}秒后，开始清理已经存在的自定义指令`)

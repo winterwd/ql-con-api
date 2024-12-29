@@ -30,18 +30,20 @@ function requestOptions(url, token, body) {
 
 const someApiRequest = async (options = {}) => {
   return new Promise((resolve, reject) => {
+    // request 超时 10 秒
+    options.timeout = 10000
     request(options, function (error, response, body) {
-      if (response.statusCode != 200) {
-        reject({ code: response.statusCode, message: '接口异常' })
-      }
-      else {
         try {
-          const result = JSON.parse(body) ?? { code: 400, message: '接口异常' }
-          resolve(result)
-        } catch (error) {
+          if (response.statusCode != 200) {
+            reject({ code: response.statusCode, message: '接口异常' })
+          }
+          else {
+            const result = JSON.parse(body) ?? { code: 400, message: '接口异常' }
+            resolve(result)
+          }
+        } catch (e) {
           reject({ code: 400, message: error.message })
         }
-      }
     })
   })
 }
