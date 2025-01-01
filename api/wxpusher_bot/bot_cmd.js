@@ -4,6 +4,10 @@ const log = require('../../utils/log_util.js');
 const request = require('request')
 const CmdPrefix = 'bot@@'
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(() => resolve(), ms));
+};
+
 const dateFormatterCN = (str = '') => {
   const date = new Date(str);
   const year = date.getFullYear().toString().padStart(4, "0");
