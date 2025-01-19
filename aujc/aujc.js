@@ -28,7 +28,7 @@ class AuJc {
       const user = await qlApi._getEnvUser(pt_pin)
       if (user) {
         const desp = `jdck用户(${user.remarks})${msg}`
-        this._sendNotify(desp, user.uuid)
+        this._sendNotify(desp, user.uid)
       }
       else {
         log.error(`AuJc webhook user:${pt_pin} not found`)
@@ -40,7 +40,11 @@ class AuJc {
     const desp = ' 这条通知显示更新成功，请忽略，如果显示失败，请联系车主或手动更新！'
     // 给用户和车主发送自动登录结果
     // notify.wxpusherNotify(text, desp, wxpusher.uid)
-    notify.wxpusherNotify(text, desp, `${uid};${wxpusher.uid}`)
+    try {
+      notify.wxpusherNotify(text, desp, `${uid};${wxpusher.uid}`)
+    } catch (error) {
+      log.error(`AuJc _sendNotify error: ${error}`)
+    }
   }
 
   // 从CacheCode中获取短信验证码

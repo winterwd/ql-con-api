@@ -24,7 +24,7 @@ fi
 
 # 构建之前先 build 混淆代码
 echo -e "${YELLOW}正在构建混淆代码...${NC}"
-npm run build
+# npm run build
 
 if [ $? -ne 0 ]; then
   echo -e "${RED}构建混淆代码失败。退出。${NC}"
