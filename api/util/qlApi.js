@@ -580,6 +580,31 @@ class QLAPI {
   static async _deleteEnvs(ids) {
     return await api.deleteEnvs(ids)
   }
+
+  static async _getEnvUser(pt_pin = '') {
+    const cks = await api.getJDCKEnvs()
+    const enCodePin = encodeURIComponent(pt_pin)
+    const users = cks.filter(item => findPt_pin(item.value) == enCodePin).map(item => {
+      const { uid, phone, nickname: remarks } = parseJDCKRemarks(item.remarks)
+      return {
+        id: item.id,
+        // 兼容中文
+        pt_pin: decodeURIComponent(pt_pin),
+        remarks,
+        phone,
+        uid: uid ?? '',
+        status: item.status,
+        value: item.value,
+        updatedAt: item.updatedAt
+      }
+    })
+
+    // 没有找到指定用户
+    if (users.length == 0) {
+      return undefined
+    }
+    return users[0]
+  }
 }
 
 module.exports = QLAPI

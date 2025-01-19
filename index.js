@@ -9,6 +9,7 @@ const bodyParser = require('koa-bodyparser')
 const log = require('./utils/log_util')
 const { site } = require('./utils/config')
 const ApiRouter = require('./api/index')
+const aujcRouter = require('./aujc/index')
 const ViewsRouter = require('./views/router/index')
 
 const path = require('path')
@@ -40,6 +41,7 @@ app.use(bodyParser({
 
 // 加载路由中间件
 app.use(ApiRouter.routes()).use(ApiRouter.allowedMethods())
+app.use(aujcRouter.routes()).use(aujcRouter.allowedMethods())
 app.use(ViewsRouter.routes()).use(ViewsRouter.allowedMethods())
 
 //// 捕获所有未处理的路由
